@@ -13,7 +13,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navGraph="@navigation/mainnav"
+        app:navGraph="@navigation/bottom_nav_graph"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
         />
     <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -30,3 +30,9 @@
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+<!--for %f in (*) do ren "%f" "home_screen_cons%f"-->

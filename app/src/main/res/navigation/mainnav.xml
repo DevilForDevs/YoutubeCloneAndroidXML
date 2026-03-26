@@ -9,5 +9,36 @@
         android:id="@+id/splashScreen"
         android:name="com.ranjan.expertclient.screens.SplashScreen"
         android:label="SplashScreen"
-        tools:layout="@layout/splash_screen"/>
+        tools:layout="@layout/splash_screen">
+        <action
+            android:id="@+id/action_splashScreen_to_browserScreen"
+            app:destination="@id/browserScreen" />
+        <action
+            android:id="@+id/action_splashScreen_to_bottomNavScreen"
+            app:destination="@id/bottomNavScreen" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bottomNavScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.BottomNavScreen"
+        android:label="BottomNavScreen"
+        tools:layout="@layout/bottom_nav_screen">
+        <action
+            android:id="@+id/action_bottomNavScreen_to_searchScreen"
+            app:destination="@id/searchScreen" />
+    </fragment>
+    <fragment
+        tools:layout="@layout/browser_screen"
+        android:id="@+id/browserScreen"
+        android:name="com.ranjan.expertclient.screens.browserscreen.BrowserScreen"
+        android:label="BrowserScreen" >
+        <action
+            android:id="@+id/action_browserScreen_to_bottomNavScreen"
+            app:destination="@id/bottomNavScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/searchScreen"
+        android:name="com.ranjan.expertclient.screens.searchscreen.SearchScreen"
+        android:label="SearchScreen"
+        tools:layout="@layout/yt_search_screen"/>
 </navigation>

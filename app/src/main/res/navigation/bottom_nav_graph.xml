@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_nav_graph"
+    app:startDestination="@id/homeScreen">
+    <fragment
+        android:id="@+id/homeScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.homescreen.HomeScreen"
+        android:label="HomeScreen"
+        tools:layout="@layout/home_screen"/>
+    <fragment
+        android:id="@+id/shortsScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.shortscreen.ShortsScreen"
+        android:label="ShortsScreen"
+        tools:layout="@layout/shorts_screen"/>
+    <fragment
+        android:id="@+id/addScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.addscreen.AddScreen"
+        android:label="AddScreen"
+        tools:layout="@layout/add_screen"/>
+    <fragment
+        android:id="@+id/subscriptionsScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.subscriptionsscreen.SubscriptionsScreen"
+        android:label="SubscriptionsScreen"
+        tools:layout="@layout/subscriptions_screen"/>
+    <fragment
+        android:id="@+id/libraryScreen"
+        android:name="com.ranjan.expertclient.screens.bottomnavscreens.libraryscreen.LibraryScreen"
+        android:label="LibraryScreen"
+        tools:layout="@layout/library_screen"/>
+
+</navigation>

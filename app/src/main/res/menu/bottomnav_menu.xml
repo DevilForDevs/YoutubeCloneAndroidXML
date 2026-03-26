@@ -1,8 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="Home"
-        android:icon="@drawable/baseline_home_filled_24"
-        android:id="@+id/homeFragment"/>
+    <item
+        android:id="@+id/homeScreen"
+        android:title="Home"
+        android:icon="@drawable/bottom_nav_home_selector"/>
+
+    <item
+        android:id="@+id/shortsScreen"
+        android:title="Shorts"
+        android:icon="@drawable/bottom_nav_short_selector"/>
+
+    <item
+        android:id="@+id/addScreen"
+        android:title="Create"
+        android:icon="@drawable/bottom_nav_add_selector"/>
+
+    <item
+        android:id="@+id/subscriptionsScreen"
+        android:title="Subscriptions"
+        android:icon="@drawable/bottom_nav_subscriptions_selector"/>
+
+    <item
+        android:id="@+id/libraryScreen"
+        android:title="Library"
+        android:icon="@drawable/bottom_nav_library_selector"/>
 
 </menu>
