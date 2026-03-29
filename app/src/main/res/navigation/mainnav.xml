@@ -26,6 +26,9 @@
         <action
             android:id="@+id/action_bottomNavScreen_to_searchScreen"
             app:destination="@id/searchScreen" />
+        <action
+            android:id="@+id/action_bottomNavScreen_to_playerScreen"
+            app:destination="@id/playerScreen" />
     </fragment>
     <fragment
         tools:layout="@layout/browser_screen"
@@ -41,4 +44,9 @@
         android:name="com.ranjan.expertclient.screens.searchscreen.SearchScreen"
         android:label="SearchScreen"
         tools:layout="@layout/yt_search_screen"/>
+    <fragment
+        android:id="@+id/playerScreen"
+        android:name="com.ranjan.expertclient.screens.playerscreen.PlayerScreen"
+        android:label="PlayerScreen"
+        tools:layout="@layout/player_screen"/>
 </navigation>

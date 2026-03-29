@@ -1,6 +1,7 @@
 package com.ranjan.expertclient.screens.browserscreen.parsers
 
 import com.ranjan.expertclient.models.VideoItem
+import com.ranjan.expertclient.screens.browserscreen.convertMutableList
 
 import com.ranjan.expertclient.screens.browserscreen.safeGet
 import org.json.JSONArray
@@ -34,6 +35,18 @@ fun getContentArray(resoponseContext: JSONObject,flags: String): JSONArray{
                 "content",
                 "richGridRenderer",
                 "contents"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+    if (flags=="mwebcontinuation"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "onResponseReceivedActions",
+                0,
+                "appendContinuationItemsAction",
+                "continuationItems"
             ),
             JSONArray()
         ) as JSONArray

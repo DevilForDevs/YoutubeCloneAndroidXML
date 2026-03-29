@@ -14,12 +14,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.YtSearchScreenBinding
-import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgets.VideosAdapter
+import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
 
 class SearchScreen : Fragment() {
 
     private lateinit var binding: YtSearchScreenBinding
-    private val adapter = VideosAdapter()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,7 +69,6 @@ class SearchScreen : Fragment() {
 
         binding.searchItems.layoutManager =
             LinearLayoutManager(binding.root.context)
-        binding.searchItems.adapter=adapter
 
 
 

@@ -36,6 +36,7 @@ class BrowserScreen : Fragment() {
     }
 
     fun goToBottomScreen(){
+
         viewLifecycleOwner.lifecycleScope.launch {
             findNavController().navigate(R.id.action_browserScreen_to_bottomNavScreen)
         }

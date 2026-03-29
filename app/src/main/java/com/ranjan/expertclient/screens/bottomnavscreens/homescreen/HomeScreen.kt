@@ -6,26 +6,26 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.HomeScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.categoryrow.CategoryRowAdapter
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
-import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnHolder
 import com.ranjan.expertclient.screens.browserscreen.Store
-import kotlin.getValue
+import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
 
 class HomeScreen : Fragment() {
 
     private lateinit var binding: HomeScreenBinding
     private val viewModel by activityViewModels<Store>()
-
+    private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
 
     private lateinit var concatAdapter: ConcatAdapter
+    val videosAdapter = VideosColumnAdapter(::onItemClick)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,15 +44,19 @@ class HomeScreen : Fragment() {
     private fun setupRecycler() {
 
         viewModel.webFeedsData.observe(viewLifecycleOwner){videos->
-            val holder = binding.homeRecycler.findViewHolderForAdapterPosition(0) as? VideosColumnHolder
-            holder?.bind(videos)
+            videosAdapter.submitList(videos)
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.loadingIndicator.visibility =
+                if (isLoading) View.VISIBLE else View.GONE
         }
 
         val categoryRowAdapter = CategoryRowAdapter(
             listOf("All","Music", "Movie", "Sports", "News","Live","Podcasts")
         )
 
-        val videosAdapter = VideosColumnAdapter(viewModel.webFeedsData.value?:emptyList())
+
 
         concatAdapter = ConcatAdapter(
             categoryRowAdapter,
@@ -64,10 +68,33 @@ class HomeScreen : Fragment() {
 
         binding.homeRecycler.adapter = concatAdapter
 
+        binding.homeRecycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+
+                val totalItemCount = layoutManager.itemCount
+                val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+
+                // trigger when last item is visible
+                if (lastVisibleItem >= totalItemCount - 2) {
+                    viewModel.handleWebFeedMore()
+                }
+            }
+        })
+
         binding.topbar.searchIcon.setOnClickListener {
             val parentNavController = requireActivity()
                 .findNavController(R.id.shoppingHostFragment)
             parentNavController.navigate(R.id.action_bottomNavScreen_to_searchScreen)
         }
+    }
+    fun onItemClick(item: VideoItem){
+        sharedViewModel.selectedVideo.value=item
+        val parentNavController = requireActivity()
+            .findNavController(R.id.shoppingHostFragment)
+        parentNavController.navigate(R.id.action_bottomNavScreen_to_playerScreen)
+
     }
 }

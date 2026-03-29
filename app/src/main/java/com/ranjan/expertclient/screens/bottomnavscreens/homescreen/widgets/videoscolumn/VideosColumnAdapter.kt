@@ -2,28 +2,64 @@ package com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.vide
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.ranjan.expertclient.databinding.HomeScreenVideosColumnBinding
+import com.ranjan.expertclient.databinding.HomeScreenVideosColumnVideoBinding
+import com.ranjan.expertclient.databinding.ShortsArrayHomeScreenBinding
 import com.ranjan.expertclient.models.VideoItem
+import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgetsholder.ShortsArrayHolder
+import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgetsholder.VideoHolder
 
 class VideosColumnAdapter(
-    private val videos: List<VideoItem>
-) : RecyclerView.Adapter<VideosColumnHolder>() {
+    private val onItemClick:(item: VideoItem)-> Unit
+):
+    androidx.recyclerview.widget.ListAdapter<VideoItem, RecyclerView.ViewHolder>(DiffCallback) {
 
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideosColumnHolder {
-        val binding = HomeScreenVideosColumnBinding.inflate(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int):RecyclerView.ViewHolder {
+        if (viewType==2){
+            val binding = ShortsArrayHomeScreenBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+          return ShortsArrayHolder(binding)
+        }
+        val binding = HomeScreenVideosColumnVideoBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
         )
-        return VideosColumnHolder(binding)
+        return VideoHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: VideosColumnHolder, position: Int) {
-        holder.bind(videos)
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item=getItem(position)
+        if (item.shortsArray!=null){
+            (holder as ShortsArrayHolder).bind(item.shortsArray)
+        }
+        if (item.shortsArray==null){
+            (holder as VideoHolder).bind(item,onItemClick)
+        }
+
     }
 
+    override fun getItemViewType(position: Int): Int {
+        if (getItem(position).shortsArray!=null){
+            return 2
+        }
+        return 1
+    }
 
-    override fun getItemCount(): Int = 1
+    companion object {
+        val DiffCallback = object : DiffUtil.ItemCallback<VideoItem>() {
+
+            override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+                return oldItem.videoId == newItem.videoId
+            }
+
+            override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+                return oldItem == newItem
+            }
+        }
+    }
 }
