@@ -11,7 +11,7 @@ class VideoHolder(
     fun bind(item: VideoItem,onItemClick:(item: VideoItem)-> Unit) {
 
         Glide.with(binding.imageView5)
-            .load("https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg")
+            .load("https://i.ytimg.com/vi/${item.playlistId?:item.videoId}/hqdefault.jpg")
             .into(binding.imageView5)
         Glide.with(binding.imageView6)
             .load(item.channelAvtar)

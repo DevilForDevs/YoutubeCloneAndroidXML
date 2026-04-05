@@ -196,11 +196,30 @@ class PlayerScreen : Fragment() {
             }
         })
 
+        binding.playerUI.linearLayout.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    binding.playerUI.textView12.text = formatTime(progress.toLong())
+                    psv.onProgressChanged(player!!, progress, true)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // Optional: Show preview or pause video while seeking
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // Optional: Resume auto-updating progress
+            }
+        })
+
+
     }
     fun onItemClick(item: VideoItem){
         if (player!=null){
             psv.loadVideo(player!!,item,dataSourceFactory,viewModel.visitorId?:"")
         }
+        binding.suggestionRecycler.scrollToPosition(0)
 
     }
 

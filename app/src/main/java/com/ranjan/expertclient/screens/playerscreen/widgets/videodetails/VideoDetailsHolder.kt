@@ -11,7 +11,7 @@ class VideoDetailsHolder(
     fun bind(videoDetails: VideoDetails){
         println("loadimm")
         println(videoDetails)
-       binding.textView11.text=videoDetails.title
+        binding.textView11.text=videoDetails.title
         binding.textView14.text=videoDetails.localLizedViewsandUploadedAgo
         binding.textView15.text=videoDetails.firstHasTag
         binding.textView17.text=videoDetails.hashTags

@@ -25,6 +25,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.text.NumberFormat
+import java.util.Locale
 
 data class StreamItem(
     val itag: Int,
@@ -49,6 +52,9 @@ class PlayerScreenViewModel : ViewModel() {
     val showControls = MutableLiveData(true)
     var progressJob: Job? = null
     var continuation: String?=null
+    var currentVideoId: String?=null
+    private var _isSeeking = MutableLiveData(false)
+    val isSeeking: LiveData<Boolean> = _isSeeking
 
     private var isRequestInFlight = false
     private  val USER_AGENT =
@@ -106,20 +112,19 @@ class PlayerScreenViewModel : ViewModel() {
         player.clearMediaItems()
         player.playWhenReady = false
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO){
             try {
+                currentVideoId=videoItem.videoId
+                val streamingData = getStreamingData(
+                    videoItem.videoId,
+                    visitorData = visitorId
+                )
 
-                adaptiveFormatsList = withContext(Dispatchers.IO) {
-                    val streamingData = getStreamingData(
-                        videoItem.videoId,
-                        visitorData = visitorId
-                    )
-                    val array = streamingData
-                        .getJSONObject("playerResponse")
-                        .getJSONObject("streamingData")
-                        .getJSONArray("adaptiveFormats")
-                    parseAdaptiveFormats(array)
-                }
+                val array = streamingData
+                    .getJSONObject("playerResponse")
+                    .getJSONObject("streamingData")
+                    .getJSONArray("adaptiveFormats")
+                adaptiveFormatsList= parseAdaptiveFormats(array)
 
                 val videoList = adaptiveFormatsList.filter { it.height != null }
                 val audioList = adaptiveFormatsList.filter { it.height == null }
@@ -167,12 +172,9 @@ class PlayerScreenViewModel : ViewModel() {
                     player.play()
                     isLoading.postValue(false)
                 }
-                withContext(Dispatchers.IO){
-                    if (videoItem.playlistId==null){
-                        loadSuggestions(videoItem.videoId,visitorId,videoItem)
-                    }
+                if (videoItem.playlistId==null){
+                    loadSuggestions(videoItem.videoId,visitorId,videoItem,streamingData.getJSONObject("playerResponse").getJSONObject("videoDetails"))
                 }
-
 
             } catch (e: Exception) {
                 isLoading.postValue(false)
@@ -188,6 +190,19 @@ class PlayerScreenViewModel : ViewModel() {
         showControls.postValue(true)
 
     }
+
+    fun seekTo(player: ExoPlayer, position: Long) {
+        _isSeeking.value = true
+        player.seekTo(position)
+        _isSeeking.value = false
+    }
+
+    fun onProgressChanged(player: ExoPlayer, progress: Int, fromUser: Boolean) {
+        if (fromUser) {
+            seekTo(player, progress.toLong())
+        }
+    }
+
     fun toggleControls() {
         val current = showControls.value ?: true
         if (current) {
@@ -200,19 +215,40 @@ class PlayerScreenViewModel : ViewModel() {
         showControls.postValue(false)
     }
 
-    private fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem){
+    private fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
         val playerResponse= WatchNextBrowse.getSuggestions(videoId,null,visitorId,"2.20260324.05.00")
-        println("parsingmmm")
         val result= parseWatchHtml(playerResponse,"watchInitial")
-        println(result)
         suggestions.postValue(result.videos)
         continuation=result.continuation
 
 
+        val view=video_details.getString("viewCount").toInt()
+        val localizedViewCount = NumberFormat
+            .getInstance(Locale.getDefault())
+            .format(view)+" • "+videoItem.publishedOn
+        val keywordsArray = video_details.optJSONArray("keywords")
+
+        val keywordsList = mutableListOf<String>()
+
+        if (keywordsArray != null) {
+            for (i in 0 until keywordsArray.length()) {
+                val k = keywordsArray.optString(i)
+                if (!k.isNullOrBlank()) {
+                    keywordsList.add(k.trim())
+                }
+            }
+        }
+
         videoDetails.postValue(
             result.videoDetails?.copy(
-                title = videoItem.title,
-                channelName = videoItem.channelName
+                title = video_details.getString("title"),
+                channelName = videoItem.channelName,
+                hashTags = keywordsList.joinToString(" ") {
+                    "#${it.trim().replace(Regex("\\s+"), "_")}"
+                },
+                localLizedViewsandUploadedAgo = localizedViewCount,
+                firstHasTag = keywordsList.firstOrNull()
+                    ?.let { "#${it.replace(" ", "")}" } ?: ""
             )
         )
 
@@ -223,7 +259,20 @@ class PlayerScreenViewModel : ViewModel() {
 
         if (isRequestInFlight) return   // ✅ instant check
 
-        isRequestInFlight = true       //
+        isRequestInFlight = true
+
+        viewModelScope.launch(Dispatchers.IO){
+            println("fetchednewivid")
+            /*val playerResponse= WatchNextBrowse.getSuggestions(currentVideoId?:"",null,visitorId,"2.20260324.05.00")
+            val result= parseWatchHtml(playerResponse,"watchInitial")
+
+            val oldVideos=suggestions.value
+            if (oldVideos != null) {
+                suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
+            }
+            continuation=result.continuation*/
+            isRequestInFlight=false
+        }
 
     }
 }
