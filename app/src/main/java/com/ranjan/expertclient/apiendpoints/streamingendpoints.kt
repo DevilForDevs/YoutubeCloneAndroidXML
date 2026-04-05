@@ -143,11 +143,11 @@ fun getVisitorId(): String {
         .getString("visitorData")
 }
 
-fun getStreamingData(videoId: String): JSONObject {
+fun getStreamingData(videoId: String,visitorData: String): JSONObject {
     val requestResponse = JSONObject()
     val cpn = generateContentPlaybackNonce()
     val tp = generateTParameter()
-    val visitorData = getVisitorId()
+
     val request = androidPlayerResponse(cpn, visitorData, videoId, tp)
     val client = OkHttpClient()
 

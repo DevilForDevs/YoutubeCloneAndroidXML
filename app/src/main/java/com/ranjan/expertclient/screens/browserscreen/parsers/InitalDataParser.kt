@@ -9,6 +9,22 @@ import org.json.JSONObject
 
 
 fun getContentArray(resoponseContext: JSONObject,flags: String): JSONArray{
+
+    if (flags=="watchInitial"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "contents",
+                "twoColumnWatchNextResults",
+                "secondaryResults",
+                "secondaryResults",
+                "results"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
+
     if (flags=="mwebsearch"){
         return safeGet(
             resoponseContext,

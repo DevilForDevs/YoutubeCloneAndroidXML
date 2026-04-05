@@ -18,6 +18,7 @@ class Store: ViewModel() {
     private val webFeeds = MutableLiveData<MutableList<VideoItem>>(mutableListOf())
     val webFeedsData: LiveData<MutableList<VideoItem>> get() = webFeeds
 
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
     private var isRequestInFlight = false
@@ -70,7 +71,10 @@ class Store: ViewModel() {
                 val result= parseInitialData(responseContext,"mwebfeeds")
                 webFeeds.postValue(result.first)
                 continuation=result.second
+                println(visitorId)
                 taskCompleted()
+
+
 
             }
         }
