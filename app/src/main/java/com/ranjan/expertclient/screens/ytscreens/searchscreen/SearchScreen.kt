@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.searchscreen
+package com.ranjan.expertclient.screens.ytscreens.searchscreen
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -16,7 +16,7 @@ import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.YtSearchScreenBinding
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
 
-class SearchScreen : Fragment() {
+class SearchScreen : androidx.fragment.app.Fragment() {
 
     private lateinit var binding: YtSearchScreenBinding
 

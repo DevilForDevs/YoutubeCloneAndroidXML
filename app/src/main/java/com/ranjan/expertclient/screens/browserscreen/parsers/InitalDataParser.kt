@@ -1,14 +1,48 @@
 package com.ranjan.expertclient.screens.browserscreen.parsers
 
 import com.ranjan.expertclient.models.VideoItem
-import com.ranjan.expertclient.screens.browserscreen.convertMutableList
-
 import com.ranjan.expertclient.screens.browserscreen.safeGet
 import org.json.JSONArray
 import org.json.JSONObject
 
 
 fun getContentArray(resoponseContext: JSONObject,flags: String): JSONArray{
+
+
+
+    if (flags=="playlist"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "contents",
+                "twoColumnBrowseResultsRenderer",
+                "tabs", 0,
+                "tabRenderer",
+                "content",
+                "sectionListRenderer",
+                "contents", 0,
+                "itemSectionRenderer",
+                "contents",
+                0,
+                "playlistVideoListRenderer",
+                "contents"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
+    if (flags=="playlist_continuation"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "onResponseReceivedActions", 0,
+                "appendContinuationItemsAction",
+                "continuationItems"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
 
     if (flags=="watchInitial"){
         return safeGet(
@@ -19,6 +53,19 @@ fun getContentArray(resoponseContext: JSONObject,flags: String): JSONArray{
                 "secondaryResults",
                 "secondaryResults",
                 "results"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
+    if (flags=="watchContinuation"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "onResponseReceivedEndpoints",
+                0,
+                "appendContinuationItemsAction",
+                "continuationItems",
             ),
             JSONArray()
         ) as JSONArray

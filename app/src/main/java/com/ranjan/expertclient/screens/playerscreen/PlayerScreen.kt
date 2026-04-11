@@ -51,12 +51,8 @@ class PlayerScreen : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        psv.fixInsets(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            view.setPadding(0, statusBarHeight, 0, 0)
-            insets
-        }
         dataSourceFactory = DefaultDataSource.Factory(requireContext())
         player = ExoPlayer.Builder(requireContext()).build()
         binding.playerView.player=player
@@ -119,18 +115,10 @@ class PlayerScreen : Fragment() {
             psv.toggleFullScreen()
         }
         psv.isFullScreen.observe(viewLifecycleOwner) { isFull ->
-            val activity = requireActivity()
-            val window = activity.window
-            val controller = WindowCompat.getInsetsController(window, window.decorView)
+
+            psv.fixOrientation(requireActivity())
 
             if (isFull) {
-
-                activity.requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-
-                controller.hide(WindowInsetsCompat.Type.systemBars())
-                controller.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 binding.playerContainer.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
                 binding.playerContainer.requestLayout()
 
@@ -139,20 +127,13 @@ class PlayerScreen : Fragment() {
                 binding.playerUI.linearLayout.layoutParams = params
                 binding.playerUI.imageView13.setImageResource(R.drawable.baseline_fullscreen_exit_24)
 
-
             } else {
-                activity.requestedOrientation =
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
-                controller.show(WindowInsetsCompat.Type.systemBars())
                 binding.playerContainer.layoutParams.height = 250.dp
                 binding.playerContainer.requestLayout()
-
                 val params = binding.playerUI.linearLayout.layoutParams as ViewGroup.MarginLayoutParams
                 params.bottomMargin = 0.dp
                 binding.playerUI.linearLayout.layoutParams = params
                 binding.playerUI.imageView13.setImageResource(R.drawable.baseline_fullscreen_24)
-
 
             }
 

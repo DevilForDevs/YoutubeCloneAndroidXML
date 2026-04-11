@@ -1,6 +1,13 @@
 package com.ranjan.expertclient.screens.playerscreen
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import android.view.View
 import androidx.annotation.OptIn
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,9 +22,13 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.ranjan.expertclient.apiendpoints.getStreamingData
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.parsers.parseInitialData
+import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.screens.playerscreen.utils.WatchNextBrowse
+import com.ranjan.expertclient.screens.playerscreen.utils.YtPlaylistBrowseFetcher
+import com.ranjan.expertclient.screens.playerscreen.utils.getFmtList
 import com.ranjan.expertclient.screens.playerscreen.utils.parseAdaptiveFormats
 import com.ranjan.expertclient.screens.playerscreen.utils.parseWatchHtml
+import com.ranjan.expertclient.screens.playerscreen.utils.prasePlaylist
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,14 +40,6 @@ import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale
 
-data class StreamItem(
-    val itag: Int,
-    val url: String,
-    val mimeType: String,
-    val height: Int?,
-    val bitrate: Int,
-    var isSelected: Boolean = false
-)
 
 class PlayerScreenViewModel : ViewModel() {
     val isLoading = MutableLiveData(false)
@@ -54,7 +57,8 @@ class PlayerScreenViewModel : ViewModel() {
     var continuation: String?=null
     var currentVideoId: String?=null
     private var _isSeeking = MutableLiveData(false)
-    val isSeeking: LiveData<Boolean> = _isSeeking
+
+
 
     private var isRequestInFlight = false
     private  val USER_AGENT =
@@ -66,6 +70,34 @@ class PlayerScreenViewModel : ViewModel() {
     fun toggleFullScreen() {
         isFullScreen.value = !(isFullScreen.value ?: false)
     }
+
+    fun fixInsets(view: View){
+        ViewCompat.setOnApplyWindowInsetsListener(view) { view, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            view.setPadding(0, statusBarHeight, 0, 0)
+            insets
+        }
+    }
+
+    fun fixOrientation(activity: Activity){
+        val window = activity.window
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (isFullScreen.value){
+            activity.requestedOrientation =
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }else{
+            activity.requestedOrientation =
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+            controller.show(WindowInsetsCompat.Type.systemBars())
+        }
+
+    }
+
     fun startProgressUpdates(player: ExoPlayer) {
         progressJob?.cancel() // stop old loop if any
 
@@ -116,16 +148,10 @@ class PlayerScreenViewModel : ViewModel() {
             try {
                 currentVideoId=videoItem.videoId
                 val streamingData = getStreamingData(
-                    videoItem.videoId,
+                    videoItem.playlistId?:videoItem.videoId,
                     visitorData = visitorId
                 )
-
-                val array = streamingData
-                    .getJSONObject("playerResponse")
-                    .getJSONObject("streamingData")
-                    .getJSONArray("adaptiveFormats")
-                adaptiveFormatsList= parseAdaptiveFormats(array)
-
+                adaptiveFormatsList= getFmtList(streamingData)
                 val videoList = adaptiveFormatsList.filter { it.height != null }
                 val audioList = adaptiveFormatsList.filter { it.height == null }
 
@@ -153,8 +179,6 @@ class PlayerScreenViewModel : ViewModel() {
                     // Completely detach old player from view first
                     player.setMediaSource(mergedSource)
                     player.prepare()
-
-
                     player.addListener(object : Player.Listener {
                         override fun onPlaybackStateChanged(state: Int) {
                             if (state == Player.STATE_READY) {
@@ -174,6 +198,8 @@ class PlayerScreenViewModel : ViewModel() {
                 }
                 if (videoItem.playlistId==null){
                     loadSuggestions(videoItem.videoId,visitorId,videoItem,streamingData.getJSONObject("playerResponse").getJSONObject("videoDetails"))
+                }else{
+                    loadPlaylist("",visitorId)
                 }
 
             } catch (e: Exception) {
@@ -225,7 +251,7 @@ class PlayerScreenViewModel : ViewModel() {
         val view=video_details.getString("viewCount").toInt()
         val localizedViewCount = NumberFormat
             .getInstance(Locale.getDefault())
-            .format(view)+" • "+videoItem.publishedOn
+            .format(view)+" view • "+videoItem.publishedOn
         val keywordsArray = video_details.optJSONArray("keywords")
 
         val keywordsList = mutableListOf<String>()
@@ -252,6 +278,12 @@ class PlayerScreenViewModel : ViewModel() {
             )
         )
 
+    }
+    fun loadPlaylist(playlistId: String,visitorId: String){
+        val response = YtPlaylistBrowseFetcher.fetch("browseId",playlistId, null,visitorId)
+        val result= prasePlaylist(JSONObject(response),"playlist")
+        suggestions.postValue(result.videos)
+        continuation=result.continuation
     }
     fun loadMoreSuggestions(visitorId: String?){
         val cont = continuation ?: return

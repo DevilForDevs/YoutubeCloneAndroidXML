@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.searchscreen.widgets.suggestionsrecycler
+package com.ranjan.expertclient.screens.ytscreens.searchscreen.widgets.suggestionsrecycler
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -9,7 +9,7 @@ import com.ranjan.expertclient.models.SuggestionItem
 
 class SuggestionAdapter(
     private val onClick: (SuggestionItem) -> Unit
-) : ListAdapter<SuggestionItem, SuggestionItemsHolder>(DiffCallback()) {
+) : androidx.recyclerview.widget.ListAdapter<SuggestionItem, SuggestionItemsHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SuggestionItemsHolder {
         val binding = SuggestionsItemBinding.inflate(

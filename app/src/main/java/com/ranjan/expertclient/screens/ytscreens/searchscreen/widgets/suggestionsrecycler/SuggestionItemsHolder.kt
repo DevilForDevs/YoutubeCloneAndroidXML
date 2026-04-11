@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.searchscreen.widgets.suggestionsrecycler
+package com.ranjan.expertclient.screens.ytscreens.searchscreen.widgets.suggestionsrecycler
 
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide

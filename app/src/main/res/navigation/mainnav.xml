@@ -41,7 +41,7 @@
     </fragment>
     <fragment
         android:id="@+id/searchScreen"
-        android:name="com.ranjan.expertclient.screens.searchscreen.SearchScreen"
+        android:name="com.ranjan.expertclient.screens.ytscreens.searchscreen.SearchScreen"
         android:label="SearchScreen"
         tools:layout="@layout/yt_search_screen"/>
     <fragment

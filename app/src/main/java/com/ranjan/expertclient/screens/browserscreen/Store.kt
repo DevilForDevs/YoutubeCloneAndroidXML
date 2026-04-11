@@ -34,7 +34,7 @@ class Store: ViewModel() {
     fun handleWebFeed(jsonString: String,taskCompleted:()-> Unit){
         if (webFeeds.value.isEmpty()){
             val finalJson = JSONObject(jsonString)
-            if (finalJson.has("url")){
+           /* if (finalJson.has("url")){
                 if (finalJson.getString("url").contains("search?prettyPrint")){
                     val responseContext=finalJson.getJSONObject("data")
                     visitorId  = safeGet(
@@ -51,7 +51,7 @@ class Store: ViewModel() {
                     taskCompleted()
 
                 }
-            }
+            }*/
             if (finalJson.has("data")) {
                 val responseContext = finalJson.getJSONObject("data")
                 visitorId = safeGet(
@@ -71,8 +71,10 @@ class Store: ViewModel() {
                 val result= parseInitialData(responseContext,"mwebfeeds")
                 webFeeds.postValue(result.first)
                 continuation=result.second
-                println(visitorId)
-                taskCompleted()
+                if (result.first.isNotEmpty()){
+                    taskCompleted()
+                }
+
 
 
 

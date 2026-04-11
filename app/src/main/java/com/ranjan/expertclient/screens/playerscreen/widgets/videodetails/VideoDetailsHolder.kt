@@ -9,8 +9,6 @@ class VideoDetailsHolder(
     private val binding: PlayerScreenVideoDetailsBinding
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(videoDetails: VideoDetails){
-        println("loadimm")
-        println(videoDetails)
         binding.textView11.text=videoDetails.title
         binding.textView14.text=videoDetails.localLizedViewsandUploadedAgo
         binding.textView15.text=videoDetails.firstHasTag
@@ -19,7 +17,7 @@ class VideoDetailsHolder(
             textView18.text=videoDetails.likes
             textView19.text=videoDetails.dislikes
             textView21.text=videoDetails.channelName
-            textView23.text=videoDetails.subscriberCount
+            textView23.text=videoDetails.subscriberCount+" subscribers"
             textView26.text=videoDetails.commentsCount
         }
         Glide.with(binding.imageView24)

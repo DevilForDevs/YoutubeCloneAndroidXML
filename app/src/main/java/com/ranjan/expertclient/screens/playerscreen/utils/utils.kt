@@ -3,7 +3,7 @@ package com.ranjan.expertclient.screens.playerscreen.utils
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.parsers.getContentArray
 import com.ranjan.expertclient.screens.browserscreen.safeGet
-import com.ranjan.expertclient.screens.playerscreen.StreamItem
+import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.InitialDataModel
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
 import org.json.JSONArray
@@ -87,131 +87,135 @@ fun extractComments(root: JSONObject): String {
     return ""
 }
 
-fun extractVideoDetails(root: JSONObject): VideoDetails {
-    val contents=safeGet(
-        root,
-        listOf(
-            "contents",
-            "twoColumnWatchNextResults",
-            "results",
-            "results",
-            "contents",
-        )
-    )as JSONArray
+fun extractVideoDetails(root: JSONObject): VideoDetails? {
+      try {
+          val contents=safeGet(
+              root,
+              listOf(
+                  "contents",
+                  "twoColumnWatchNextResults",
+                  "results",
+                  "results",
+                  "contents",
+              )
+          )as JSONArray
 
 
 
 
 
-    val primaryInfo=safeGet(
-        contents,
-        listOf(
-            0,
-            "videoPrimaryInfoRenderer",
-        )
-    )
+          val primaryInfo=safeGet(
+              contents,
+              listOf(
+                  0,
+                  "videoPrimaryInfoRenderer",
+              )
+          )
 
 
 
-    val secondryInfo=safeGet(
-        contents,
-        listOf(
-            1,
-            "videoSecondaryInfoRenderer",
-        )
-    )
+          val secondryInfo=safeGet(
+              contents,
+              listOf(
+                  1,
+                  "videoSecondaryInfoRenderer",
+              )
+          )
 
 
-    val owner=safeGet(
-        secondryInfo,
-        listOf(
-            "owner",
-            "videoOwnerRenderer",
-        )
-    )
+          val owner=safeGet(
+              secondryInfo,
+              listOf(
+                  "owner",
+                  "videoOwnerRenderer",
+              )
+          )
 
-    val channelphoto=safeGet(
-        secondryInfo,
-        listOf(
-            "owner",
-            "videoOwnerRenderer",
-            "thumbnail",
-            "thumbnails", 1, "url"
-        )
-    )
+          val channelphoto=safeGet(
+              secondryInfo,
+              listOf(
+                  "owner",
+                  "videoOwnerRenderer",
+                  "thumbnail",
+                  "thumbnails", 1, "url"
+              )
+          )
 
-    println(channelphoto)
+          println(channelphoto)
 
-    val subscriberCount=safeGet(
-        owner,
-        listOf(
-            "subscriberCountText",
-            "simpleText"
-        )
-    )
+          val subscriberCount=safeGet(
+              owner,
+              listOf(
+                  "subscriberCountText",
+                  "simpleText"
+              )
+          )
 
-    val titleRun=safeGet(
-        owner,
-        listOf(
-            "title",
-            "runs",
-            0,
-        )
-    )
-    val channelName=safeGet(
-        titleRun,
-        listOf(
-            "title",
-            "runs",
-            0,
-        )
-    )
+          val titleRun=safeGet(
+              owner,
+              listOf(
+                  "title",
+                  "runs",
+                  0,
+              )
+          )
+          val channelName=safeGet(
+              titleRun,
+              listOf(
+                  "title",
+                  "runs",
+                  0,
+              )
+          )
 
-    val channelUrl=safeGet(
-        titleRun,
-        listOf(
-            "navigationEndpoint",
-            "browseEndpoint",
-            "canonicalBaseUrl",
-        )
-    )
-    val topBar=safeGet(
-        primaryInfo,
-        listOf(
-            "videoActions",
-            "menuRenderer",
-            "topLevelButtons",
-        )
-    )
+          val channelUrl=safeGet(
+              titleRun,
+              listOf(
+                  "navigationEndpoint",
+                  "browseEndpoint",
+                  "canonicalBaseUrl",
+              )
+          )
+          val topBar=safeGet(
+              primaryInfo,
+              listOf(
+                  "videoActions",
+                  "menuRenderer",
+                  "topLevelButtons",
+              )
+          )
 
-    val likes=safeGet(
-        topBar,
-        listOf(
-            0,
-            "segmentedLikeDislikeButtonViewModel",
-            "likeButtonViewModel",
-            "likeButtonViewModel",
-            "toggleButtonViewModel",
-            "toggleButtonViewModel",
-            "defaultButtonViewModel",
-            "buttonViewModel",
-            "title",
-        )
-    )
-    return VideoDetails(
-        title = "title",
-        likes as String,
-        dislikes = "Dislikes",
-        channelBigThumb = channelphoto as String,
-        commentsCount = extractComments(root),
-        localLizedViewsandUploadedAgo = "",
-        subscriberCount = subscriberCount as String,
-        firstHasTag = "",
-        hashTags = "",
-        channelName = channelName as String?,
-        channelUrl = channelUrl as String?
-    )
+          val likes=safeGet(
+              topBar,
+              listOf(
+                  0,
+                  "segmentedLikeDislikeButtonViewModel",
+                  "likeButtonViewModel",
+                  "likeButtonViewModel",
+                  "toggleButtonViewModel",
+                  "toggleButtonViewModel",
+                  "defaultButtonViewModel",
+                  "buttonViewModel",
+                  "title",
+              )
+          )
+          return VideoDetails(
+              title = "title",
+              likes as String,
+              dislikes = "Dislikes",
+              channelBigThumb = channelphoto as String,
+              commentsCount = extractComments(root),
+              localLizedViewsandUploadedAgo = "",
+              subscriberCount = subscriberCount as String,
+              firstHasTag = "",
+              hashTags = "",
+              channelName = channelName as String?,
+              channelUrl = channelUrl as String?
+          )
 
+      }catch (e: Exception){
+          return  null
+      }
 }
 
 fun parseWatchItems(items: JSONArray): Pair<MutableList<VideoItem>, String?>{
