@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FEFEFE">
+    >
     <include layout="@layout/home_screen_search_bar"
         app:layout_constraintTop_toTopOf="parent"
         android:id="@+id/topbar"

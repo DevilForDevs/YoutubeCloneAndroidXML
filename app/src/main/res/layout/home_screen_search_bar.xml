@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingHorizontal="10dp"
+    android:background="@color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <ImageView
@@ -19,7 +20,7 @@
         android:layout_height="wrap_content"
         android:text="Youtube"
         android:textSize="22sp"
-        android:textColor="#000000"
+        android:textColor="#0A0A0A"
         android:fontFamily="@font/inter_18pt_extra_bold"
         app:layout_constraintBottom_toBottomOf="@+id/imageView"
         app:layout_constraintStart_toEndOf="@+id/imageView"

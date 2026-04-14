@@ -20,13 +20,16 @@ import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.ranjan.expertclient.R
+import com.ranjan.expertclient.databinding.DialogResolutionsBinding
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
 import com.ranjan.expertclient.screens.browserscreen.Store
 import com.ranjan.expertclient.screens.playerscreen.utils.formatTime
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetailsAdapter
+import com.ranjan.expertclient.screens.playerscreen.widgets.resolution.ResolutionAdapter
 import com.ranjan.expertclient.screens.playerscreen.widgets.videodetails.VideoDetailsHolder
 
 class PlayerScreen : Fragment() {
@@ -58,11 +61,15 @@ class PlayerScreen : Fragment() {
         binding.playerView.player=player
         psv.loadVideo(player!!,sharedViewModel.selectedVideo.value,dataSourceFactory,viewModel.visitorId?:"")
         binding.playerUI.imageView17.setOnClickListener {
-            ::showResolutionsModal
+           showResolutionsModal()
         }
         psv.isLoading.observe(viewLifecycleOwner) { loading ->
             binding.loadingIndicator.visibility =
                 if (loading) View.VISIBLE else View.GONE
+        }
+        psv.loadingMore.observe(viewLifecycleOwner){isloading->
+            binding.progressBar.visibility =
+                if (isloading) View.VISIBLE else View.GONE
         }
 
         psv.totalDuration.observe(viewLifecycleOwner){totalDuration->
@@ -87,6 +94,7 @@ class PlayerScreen : Fragment() {
             }
 
         }
+
         binding.playerUI.imageView14.setOnClickListener {
             if (player!=null){
                 psv.togglePlayBack(player!!)
@@ -195,6 +203,8 @@ class PlayerScreen : Fragment() {
         })
 
 
+
+
     }
     fun onItemClick(item: VideoItem){
         if (player!=null){
@@ -205,9 +215,29 @@ class PlayerScreen : Fragment() {
     }
 
 
-    fun showResolutionsModal(){
+    fun showResolutionsModal() {
+        val resolutions = psv.getResolutionList()
+        if (resolutions.isEmpty()) return
 
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogResolutionsBinding.inflate(layoutInflater)
+
+        val adapter = ResolutionAdapter { selected ->
+            psv.setResolution(player!!, selected, dataSourceFactory, viewModel.visitorId ?: "")
+            dialog.dismiss()
+        }
+
+        dialogBinding.resolutionRecycler.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            this.adapter = adapter
+        }
+
+        adapter.submitList(resolutions, psv.currentResolution.value)
+
+        dialog.setContentView(dialogBinding.root)
+        dialog.show()
     }
+
     val Int.dp: Int
         get() = (this * Resources.getSystem().displayMetrics.density).toInt()
     override fun onPause() {

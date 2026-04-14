@@ -8,5 +8,5 @@ fun getFmtList(streamingData: JSONObject): List<StreamItem>{
         .getJSONObject("playerResponse")
         .getJSONObject("streamingData")
         .getJSONArray("adaptiveFormats")
-    return parseAdaptiveFormats(array)
+    return parseAdaptiveFormats(array).reversed()
 }

@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="8dp">
+    android:layout_marginVertical="8dp"
+    android:background="@color/white">
 
     <View
         android:id="@+id/view2"
@@ -22,7 +23,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto_regular"
         android:text="Share"
-        android:textColor="#0A0A0A"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="@+id/imageView23"
         app:layout_constraintStart_toStartOf="@+id/imageView23"
         app:layout_constraintTop_toBottomOf="@+id/imageView23" />
@@ -36,8 +37,8 @@
         android:fontFamily="@font/roboto_medium"
         android:maxLines="3"
         android:text="Loading..."
-        android:textColor="#0A0A0A"
         android:textSize="20sp"
+        android:textColor="#0A0A0A"
         android:layout_marginHorizontal="8dp"
         app:layout_constraintEnd_toStartOf="@+id/imageView15"
         app:layout_constraintStart_toStartOf="parent"
@@ -102,7 +103,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto_regular"
         android:text="Loading..."
-        android:textColor="#0A0A0A"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="@+id/imageView20"
         app:layout_constraintStart_toStartOf="@+id/imageView20"
         app:layout_constraintTop_toBottomOf="@+id/imageView20" />
@@ -122,7 +123,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto_regular"
         android:text="65"
-        android:textColor="#0A0A0A"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="@+id/imageView21"
         app:layout_constraintStart_toStartOf="@+id/imageView21"
         app:layout_constraintTop_toBottomOf="@+id/imageView21" />
@@ -153,7 +154,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto_regular"
         android:text="Download"
-        android:textColor="#0A0A0A"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="@+id/imageView25"
         app:layout_constraintStart_toStartOf="@+id/imageView25"
         app:layout_constraintTop_toBottomOf="@+id/imageView25" />
@@ -173,7 +174,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto_regular"
         android:text="Save"
-        android:textColor="#0A0A0A"
+        android:textColor="?attr/colorOnSurface"
         app:layout_constraintEnd_toEndOf="@+id/imageView22"
         app:layout_constraintStart_toStartOf="@+id/imageView22"
         app:layout_constraintTop_toBottomOf="@+id/imageView22" />
@@ -205,24 +206,28 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
+        android:layout_marginHorizontal="20dp"
         android:fontFamily="@font/roboto_regular"
         android:text="Loading..."
         android:textColor="#0A0A0A"
         android:textSize="18sp"
-        android:layout_marginHorizontal="20dp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintEnd_toStartOf="@+id/textView24"
         app:layout_constraintStart_toEndOf="@+id/imageView24"
-        app:layout_constraintTop_toTopOf="@+id/imageView24" />
+        app:layout_constraintTop_toTopOf="@+id/imageView24"  />
 
     <TextView
         android:id="@+id/textView23"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:fontFamily="@font/roboto_regular"
         android:text="Loading..."
         android:textColor="#6C6C6C"
         android:textSize="16sp"
+        android:maxLines="1"
+        android:ellipsize="end"
         app:layout_constraintEnd_toEndOf="@+id/textView21"
         app:layout_constraintStart_toStartOf="@+id/textView21"
         app:layout_constraintTop_toBottomOf="@+id/textView21" />
@@ -235,9 +240,9 @@
         android:text="SUBSCRIBE"
         android:textColor="#FF0000"
         android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView23"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView21" />
+        app:layout_constraintTop_toTopOf="@id/textView21"
+        app:layout_constraintBottom_toBottomOf="@id/textView23" />
 
     <TextView
         android:id="@+id/textView25"

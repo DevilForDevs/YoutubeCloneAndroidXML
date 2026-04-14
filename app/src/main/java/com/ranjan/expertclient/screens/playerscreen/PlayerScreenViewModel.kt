@@ -57,10 +57,17 @@ class PlayerScreenViewModel : ViewModel() {
     var continuation: String?=null
     var currentVideoId: String?=null
     private var _isSeeking = MutableLiveData(false)
+    val current_playlistId = MutableLiveData<String?>()
+    val currentResolution = MutableLiveData<String?>()
+
+
+
+
 
 
 
     private var isRequestInFlight = false
+    val loadingMore = MutableLiveData(false)
     private  val USER_AGENT =
         "Mozilla/5.0 (Linux; Android 15; CPH2665 Build/AP3A.240617.008; wv) " +
                 "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 " +
@@ -152,6 +159,7 @@ class PlayerScreenViewModel : ViewModel() {
                     visitorData = visitorId
                 )
                 adaptiveFormatsList= getFmtList(streamingData)
+                println(adaptiveFormatsList)
                 val videoList = adaptiveFormatsList.filter { it.height != null }
                 val audioList = adaptiveFormatsList.filter { it.height == null }
 
@@ -162,6 +170,7 @@ class PlayerScreenViewModel : ViewModel() {
                 }
 
                 val selectedVideo = videoList[0]
+                currentResolution.postValue("${selectedVideo.height}p") // ← add this line
 
                 val selectedAudio = audioList.maxByOrNull { it.bitrate }
 
@@ -196,11 +205,8 @@ class PlayerScreenViewModel : ViewModel() {
                     player.play()
                     isLoading.postValue(false)
                 }
-                if (videoItem.playlistId==null){
-                    loadSuggestions(videoItem.videoId,visitorId,videoItem,streamingData.getJSONObject("playerResponse").getJSONObject("videoDetails"))
-                }else{
-                    loadPlaylist("",visitorId)
-                }
+                loadSuggestions(videoItem.videoId,visitorId,videoItem,streamingData.getJSONObject("playerResponse").getJSONObject("videoDetails"))
+
 
             } catch (e: Exception) {
                 isLoading.postValue(false)
@@ -208,6 +214,44 @@ class PlayerScreenViewModel : ViewModel() {
             }
         }
     }
+
+    @OptIn(UnstableApi::class)
+    fun setResolution(player: ExoPlayer, resolution: String, dsf: DefaultDataSource.Factory, visitorId: String) {
+        val selected = adaptiveFormatsList
+            .filter { it.height != null }
+            .firstOrNull { "${it.height}p" == resolution } ?: return
+
+        val audioSource = adaptiveFormatsList
+            .filter { it.height == null }
+            .maxByOrNull { it.bitrate } ?: return
+
+        val resumePos = player.currentPosition
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val videoSource = ProgressiveMediaSource.Factory(dsf)
+                .createMediaSource(MediaItem.fromUri(selected.url))
+            val audio = ProgressiveMediaSource.Factory(dsf)
+                .createMediaSource(MediaItem.fromUri(audioSource.url))
+            val merged = MergingMediaSource(videoSource, audio)
+
+            withContext(Dispatchers.Main) {
+                player.setMediaSource(merged)
+                player.prepare()
+                player.seekTo(resumePos)
+                player.play()
+                currentResolution.postValue(resolution)
+            }
+        }
+    }
+
+    fun getResolutionList(): List<String> {
+        return adaptiveFormatsList
+            .filter { it.height != null }
+            .map { "${it.height}p" }
+            .distinct()
+            .sortedByDescending { it.dropLast(1).toIntOrNull() ?: 0 }
+    }
+
     override fun onCleared() {
         super.onCleared()
         stopProgressUpdates()
@@ -244,10 +288,6 @@ class PlayerScreenViewModel : ViewModel() {
     private fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
         val playerResponse= WatchNextBrowse.getSuggestions(videoId,null,visitorId,"2.20260324.05.00")
         val result= parseWatchHtml(playerResponse,"watchInitial")
-        suggestions.postValue(result.videos)
-        continuation=result.continuation
-
-
         val view=video_details.getString("viewCount").toInt()
         val localizedViewCount = NumberFormat
             .getInstance(Locale.getDefault())
@@ -278,12 +318,29 @@ class PlayerScreenViewModel : ViewModel() {
             )
         )
 
+
+        if (videoItem.playlistId==null){
+            suggestions.postValue(result.videos)
+            continuation=result.continuation
+        }else{
+            val cp=current_playlistId.value
+            if (cp!=videoId){
+                current_playlistId.value=videoId
+                loadPlaylist(videoId,visitorId)
+            }
+
+        }
+
     }
     fun loadPlaylist(playlistId: String,visitorId: String){
-        val response = YtPlaylistBrowseFetcher.fetch("browseId",playlistId, null,visitorId)
+        val response = YtPlaylistBrowseFetcher.fetch("browseId", "VL$playlistId", null,visitorId)
+        continuation=null
         val result= prasePlaylist(JSONObject(response),"playlist")
-        suggestions.postValue(result.videos)
+        val channelPhoto = result.metaData?.channelAvtar
+        suggestions.postValue(result.videos.map { it.copy(channelAvtar = channelPhoto, playlistId = playlistId) } as MutableList<VideoItem>?)
         continuation=result.continuation
+
+
     }
     fun loadMoreSuggestions(visitorId: String?){
         val cont = continuation ?: return
@@ -292,19 +349,38 @@ class PlayerScreenViewModel : ViewModel() {
         if (isRequestInFlight) return   // ✅ instant check
 
         isRequestInFlight = true
+        loadingMore.postValue(true)
+        val currentitem=suggestions.value?.find { it.videoId == currentVideoId }
+
 
         viewModelScope.launch(Dispatchers.IO){
-            println("fetchednewivid")
-            /*val playerResponse= WatchNextBrowse.getSuggestions(currentVideoId?:"",null,visitorId,"2.20260324.05.00")
-            val result= parseWatchHtml(playerResponse,"watchInitial")
-
-            val oldVideos=suggestions.value
-            if (oldVideos != null) {
-                suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
+            if (currentitem?.playlistId ==null){
+                val playerResponse= WatchNextBrowse.getSuggestions(currentVideoId?:"",cont,visitor,"2.20260324.05.00")
+                val result= parseWatchHtml(playerResponse,"watchContinuation")
+                val oldVideos=suggestions.value
+                if (oldVideos != null) {
+                    suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
+                }
+                continuation=result.continuation
+                isRequestInFlight=false
+                loadingMore.postValue(false)
+            }else{
+                val response = YtPlaylistBrowseFetcher.fetch("continuation",cont, null,visitorId)
+                val result= prasePlaylist(JSONObject(response),"playlist_continuation")
+                val oldVideos=suggestions.value
+                if (oldVideos != null) {
+                    suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
+                }
+                continuation=result.continuation
+                isRequestInFlight=false
+                loadingMore.postValue(false)
             }
-            continuation=result.continuation*/
-            isRequestInFlight=false
+
         }
+
+    }
+
+    fun getDialogBox(){
 
     }
 }
