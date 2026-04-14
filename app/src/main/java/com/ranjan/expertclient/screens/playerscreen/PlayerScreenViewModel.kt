@@ -1,13 +1,6 @@
 package com.ranjan.expertclient.screens.playerscreen
 
-import android.app.Activity
-import android.content.pm.ActivityInfo
-import android.view.View
 import androidx.annotation.OptIn
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -21,12 +14,10 @@ import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.ranjan.expertclient.apiendpoints.getStreamingData
 import com.ranjan.expertclient.models.VideoItem
-import com.ranjan.expertclient.screens.browserscreen.parsers.parseInitialData
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.screens.playerscreen.utils.WatchNextBrowse
 import com.ranjan.expertclient.screens.playerscreen.utils.YtPlaylistBrowseFetcher
 import com.ranjan.expertclient.screens.playerscreen.utils.getFmtList
-import com.ranjan.expertclient.screens.playerscreen.utils.parseAdaptiveFormats
 import com.ranjan.expertclient.screens.playerscreen.utils.parseWatchHtml
 import com.ranjan.expertclient.screens.playerscreen.utils.prasePlaylist
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
@@ -56,7 +47,7 @@ class PlayerScreenViewModel : ViewModel() {
     var progressJob: Job? = null
     var continuation: String?=null
     var currentVideoId: String?=null
-    private var _isSeeking = MutableLiveData(false)
+    var _isSeeking = MutableLiveData(false)
     val current_playlistId = MutableLiveData<String?>()
     val currentResolution = MutableLiveData<String?>()
 
@@ -74,36 +65,7 @@ class PlayerScreenViewModel : ViewModel() {
                 "Chrome/143.0.7499.34 Mobile Safari/537.36"
 
 
-    fun toggleFullScreen() {
-        isFullScreen.value = !(isFullScreen.value ?: false)
-    }
 
-    fun fixInsets(view: View){
-        ViewCompat.setOnApplyWindowInsetsListener(view) { view, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            view.setPadding(0, statusBarHeight, 0, 0)
-            insets
-        }
-    }
-
-    fun fixOrientation(activity: Activity){
-        val window = activity.window
-        val controller = WindowCompat.getInsetsController(window, window.decorView)
-        if (isFullScreen.value){
-            activity.requestedOrientation =
-                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }else{
-            activity.requestedOrientation =
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
-            controller.show(WindowInsetsCompat.Type.systemBars())
-        }
-
-    }
 
     fun startProgressUpdates(player: ExoPlayer) {
         progressJob?.cancel() // stop old loop if any
@@ -120,18 +82,30 @@ class PlayerScreenViewModel : ViewModel() {
             }
         }
     }
-    fun togglePlayBack(player: Player){
-        if (player.isPlaying) {
-            player.pause() // ✅ NOT stop()
-            isPaused.postValue(true)
-        } else {
-            player.play()
-            isPaused.postValue(false)
-        }
-    }
+
     fun stopProgressUpdates() {
         progressJob?.cancel()
     }
+
+    @OptIn(UnstableApi::class)
+    suspend fun loadVideoAndGetFormats(
+        videoItem: VideoItem,
+        visitorId: String
+    ): List<StreamItem> {
+
+        currentVideoId = videoItem.videoId
+
+        val streamingData = getStreamingData(
+            videoItem.playlistId ?: videoItem.videoId,
+            visitorData = visitorId
+        )
+
+        val formats = getFmtList(streamingData)
+        adaptiveFormatsList = formats
+
+        return formats
+    }
+
     @OptIn(UnstableApi::class)
     fun loadVideo(
         player: ExoPlayer,
@@ -256,34 +230,6 @@ class PlayerScreenViewModel : ViewModel() {
         super.onCleared()
         stopProgressUpdates()
     }
-    fun onUserInteraction() {
-        showControls.postValue(true)
-
-    }
-
-    fun seekTo(player: ExoPlayer, position: Long) {
-        _isSeeking.value = true
-        player.seekTo(position)
-        _isSeeking.value = false
-    }
-
-    fun onProgressChanged(player: ExoPlayer, progress: Int, fromUser: Boolean) {
-        if (fromUser) {
-            seekTo(player, progress.toLong())
-        }
-    }
-
-    fun toggleControls() {
-        val current = showControls.value ?: true
-        if (current) {
-            hideControls()
-        } else {
-            onUserInteraction()
-        }
-    }
-    private fun hideControls() {
-        showControls.postValue(false)
-    }
 
     private fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
         val playerResponse= WatchNextBrowse.getSuggestions(videoId,null,visitorId,"2.20260324.05.00")
@@ -380,7 +326,5 @@ class PlayerScreenViewModel : ViewModel() {
 
     }
 
-    fun getDialogBox(){
 
-    }
 }
