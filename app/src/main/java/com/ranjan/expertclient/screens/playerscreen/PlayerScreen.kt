@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
@@ -35,6 +37,12 @@ class PlayerScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        ViewCompat.setOnApplyWindowInsetsListener(view) { view, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            view.setPadding(0, statusBarHeight, 0, 0)
+            insets
+        }
+
         playerManager = PlayerManager(
             context = requireContext(),
             psv = psv,
@@ -58,12 +66,20 @@ class PlayerScreen : Fragment() {
         val suggestionsController = SuggestionsController(
             binding = binding,
             psv = psv,
-            lifecycleOwner = viewLifecycleOwner
+            lifecycleOwner = viewLifecycleOwner,
+            viewModel.visitorId?:"",
+            playerManager
         )
         val resolutionDialog = ResolutionDialog(this)
 
         playerManager.attach(binding.playerView)
-        playerManager.loadInitial()
+
+        //load inital video
+        psv.loadVideo(
+            videoItem = sharedViewModel.selectedVideo.value,
+            visitorId = viewModel.visitorId?:"",
+            playerManager
+        )
 
         uiController.setup()
         fullscreenManager.setup()

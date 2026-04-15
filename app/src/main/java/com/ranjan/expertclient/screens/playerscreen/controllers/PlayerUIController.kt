@@ -64,10 +64,19 @@ class PlayerUIController(
             binding.playerUI.root.visibility =
                 if (it) View.VISIBLE else View.GONE
         }
+
+        psv.isPaused.observe(lifecycleOwner) {
+            updateLoadingIndicator()
+        }
     }
 
     private fun toggleControls() {
         val current = psv.showControls.value ?: true
         psv.showControls.postValue(!current)
+    }
+    fun updateLoadingIndicator() {
+        val show = (psv.isLoading.value == true) || (psv.isPaused.value == true)
+        binding.loadingIndicator.visibility =
+            if (show) View.VISIBLE else View.GONE
     }
 }

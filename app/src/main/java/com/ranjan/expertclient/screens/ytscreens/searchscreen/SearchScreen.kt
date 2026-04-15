@@ -3,24 +3,28 @@ package com.ranjan.expertclient.screens.ytscreens.searchscreen
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.YtSearchScreenBinding
+import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
+import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
+import com.ranjan.expertclient.screens.ytscreens.searchscreen.controllers.SearchController
+import kotlin.getValue
 
-class SearchScreen : androidx.fragment.app.Fragment() {
+class SearchScreen : Fragment() {
 
     private lateinit var binding: YtSearchScreenBinding
-
-
+    private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
+    private val ssvm by activityViewModels<SearchScreenViewModel>()
+    val videosAdapter = VideosColumnAdapter(::onItemClick)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -30,7 +34,6 @@ class SearchScreen : androidx.fragment.app.Fragment() {
         return binding.root
     }
 
-    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
@@ -38,41 +41,20 @@ class SearchScreen : androidx.fragment.app.Fragment() {
             view.setPadding(0, statusBarHeight, 0, 0)
             insets
         }
-        binding.editTextText.addTextChangedListener {
-            if (it.isNullOrEmpty()) {
-                binding.editTextText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-            } else {
-                binding.editTextText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.baseline_close_24, 0)
-            }
-        }
-
-        binding.editTextText.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                val drawableEnd = 2
-                val drawable = binding.editTextText.compoundDrawables[drawableEnd]
-
-                if (drawable != null) {
-                    if (event.rawX >= (binding.editTextText.right - drawable.bounds.width())) {
-                        binding.editTextText.text.clear()
-                        // IMPORTANT: accessibility fix
-                        v.performClick()
-
-                        return@setOnTouchListener true
-                    }
-                }
-            }
-            false
-        }
-        binding.imageView7.setOnClickListener {
-            findNavController().popBackStack()
-        }
-
-        binding.searchItems.layoutManager =
-            LinearLayoutManager(binding.root.context)
+        val searchController= SearchController(
+            binding, back = {
+                findNavController().popBackStack()
+            }, videosAdapter, ssvm,
+            lifecycleOwner = viewLifecycleOwner
+        )
 
 
 
+    }
 
+    fun onItemClick(item: VideoItem){
+        sharedViewModel.selectedVideo.value=item
+       findNavController().navigate(R.id.action_searchScreen_to_playerScreen)
 
     }
 

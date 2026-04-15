@@ -2,18 +2,15 @@ package com.ranjan.expertclient.screens.playerscreen
 
 import androidx.annotation.OptIn
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.MergingMediaSource
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.ranjan.expertclient.apiendpoints.getStreamingData
 import com.ranjan.expertclient.models.VideoItem
+import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerManager
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.screens.playerscreen.utils.WatchNextBrowse
 import com.ranjan.expertclient.screens.playerscreen.utils.YtPlaylistBrowseFetcher
@@ -51,18 +48,17 @@ class PlayerScreenViewModel : ViewModel() {
     val current_playlistId = MutableLiveData<String?>()
     val currentResolution = MutableLiveData<String?>()
 
-
-
-
-
-
-
     private var isRequestInFlight = false
     val loadingMore = MutableLiveData(false)
-    private  val USER_AGENT =
-        "Mozilla/5.0 (Linux; Android 15; CPH2665 Build/AP3A.240617.008; wv) " +
-                "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 " +
-                "Chrome/143.0.7499.34 Mobile Safari/537.36"
+
+    val showLoading = MediatorLiveData<Boolean>().apply {
+        fun update() {
+            value = (isLoading.value == true) || (isPaused.value == true)
+        }
+
+        addSource(isLoading) { update() }
+        addSource(isPaused) { update() }
+    }
 
 
 
@@ -88,10 +84,10 @@ class PlayerScreenViewModel : ViewModel() {
     }
 
     @OptIn(UnstableApi::class)
-    suspend fun loadVideoAndGetFormats(
+    fun loadVideoAndGetFormats(
         videoItem: VideoItem,
         visitorId: String
-    ): List<StreamItem> {
+    ): JSONObject {
 
         currentVideoId = videoItem.videoId
 
@@ -100,18 +96,14 @@ class PlayerScreenViewModel : ViewModel() {
             visitorData = visitorId
         )
 
-        val formats = getFmtList(streamingData)
-        adaptiveFormatsList = formats
-
-        return formats
+        return streamingData
     }
 
     @OptIn(UnstableApi::class)
     fun loadVideo(
-        player: ExoPlayer,
         videoItem: VideoItem,
-        dsf: DefaultDataSource.Factory,
-        visitorId: String
+        visitorId: String,
+        playerManager: PlayerManager
     ) {
         isPaused.value=true
         isLoading.value = true
@@ -119,104 +111,25 @@ class PlayerScreenViewModel : ViewModel() {
         totalDuration.postValue(0L)
         durationProgress.postValue(0L)
 
-        // Fully stop & release old playback
-        player.stop()
-        stopProgressUpdates()
-        player.clearMediaItems()
-        player.playWhenReady = false
+        viewModelScope.launch {
+            val playerResponse = withContext(Dispatchers.IO) {
+                loadVideoAndGetFormats(videoItem, visitorId)
+            }
 
-        viewModelScope.launch(Dispatchers.IO){
-            try {
-                currentVideoId=videoItem.videoId
-                val streamingData = getStreamingData(
-                    videoItem.playlistId?:videoItem.videoId,
-                    visitorData = visitorId
+            val formats = getFmtList(playerResponse)
+            adaptiveFormatsList = formats
+
+            playerManager.play(formats) // already on Main thread ✅
+            withContext(Dispatchers.IO){
+                loadSuggestions(
+                    videoItem.videoId, visitorId, videoItem,
+                    video_details =playerResponse.getJSONObject("playerResponse").getJSONObject("videoDetails"),
                 )
-                adaptiveFormatsList= getFmtList(streamingData)
-                println(adaptiveFormatsList)
-                val videoList = adaptiveFormatsList.filter { it.height != null }
-                val audioList = adaptiveFormatsList.filter { it.height == null }
-
-                if (videoList.isEmpty() || audioList.isEmpty()) {
-                    isLoading.postValue(false)
-                    error.postValue("No playable stream found")
-                    return@launch
-                }
-
-                val selectedVideo = videoList[0]
-                currentResolution.postValue("${selectedVideo.height}p") // ← add this line
-
-                val selectedAudio = audioList.maxByOrNull { it.bitrate }
-
-                selectedVideo.isSelected = true
-
-                val videoSource = ProgressiveMediaSource.Factory(dsf)
-                    .createMediaSource(MediaItem.fromUri(selectedVideo.url))
-                val audioSource = ProgressiveMediaSource.Factory(dsf)
-                    .createMediaSource(MediaItem.fromUri(selectedAudio!!.url))
-
-                val mergedSource = MergingMediaSource(videoSource, audioSource)
-
-                // ✅ Main thread for playback
-                withContext(Dispatchers.Main) {
-                    // Completely detach old player from view first
-                    player.setMediaSource(mergedSource)
-                    player.prepare()
-                    player.addListener(object : Player.Listener {
-                        override fun onPlaybackStateChanged(state: Int) {
-                            if (state == Player.STATE_READY) {
-                                val durationMs = player.duration
-                                totalDuration.postValue(durationMs)
-                            }
-                            if (state == Player.STATE_BUFFERING) {
-                                isLoading.postValue(true)
-                            }
-
-
-                        }
-                    })
-                    startProgressUpdates(player)
-                    player.play()
-                    isLoading.postValue(false)
-                }
-                loadSuggestions(videoItem.videoId,visitorId,videoItem,streamingData.getJSONObject("playerResponse").getJSONObject("videoDetails"))
-
-
-            } catch (e: Exception) {
-                isLoading.postValue(false)
-                error.postValue(e.message)
             }
         }
     }
 
-    @OptIn(UnstableApi::class)
-    fun setResolution(player: ExoPlayer, resolution: String, dsf: DefaultDataSource.Factory, visitorId: String) {
-        val selected = adaptiveFormatsList
-            .filter { it.height != null }
-            .firstOrNull { "${it.height}p" == resolution } ?: return
 
-        val audioSource = adaptiveFormatsList
-            .filter { it.height == null }
-            .maxByOrNull { it.bitrate } ?: return
-
-        val resumePos = player.currentPosition
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val videoSource = ProgressiveMediaSource.Factory(dsf)
-                .createMediaSource(MediaItem.fromUri(selected.url))
-            val audio = ProgressiveMediaSource.Factory(dsf)
-                .createMediaSource(MediaItem.fromUri(audioSource.url))
-            val merged = MergingMediaSource(videoSource, audio)
-
-            withContext(Dispatchers.Main) {
-                player.setMediaSource(merged)
-                player.prepare()
-                player.seekTo(resumePos)
-                player.play()
-                currentResolution.postValue(resolution)
-            }
-        }
-    }
 
     fun getResolutionList(): List<String> {
         return adaptiveFormatsList
@@ -231,7 +144,7 @@ class PlayerScreenViewModel : ViewModel() {
         stopProgressUpdates()
     }
 
-    private fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
+    fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
         val playerResponse= WatchNextBrowse.getSuggestions(videoId,null,visitorId,"2.20260324.05.00")
         val result= parseWatchHtml(playerResponse,"watchInitial")
         val view=video_details.getString("viewCount").toInt()

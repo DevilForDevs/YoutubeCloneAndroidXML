@@ -8,6 +8,39 @@ import org.json.JSONObject
 
 fun getContentArray(resoponseContext: JSONObject,flags: String): JSONArray{
 
+    if (flags=="ytsearch"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "contents",
+                "twoColumnSearchResultsRenderer",
+                "primaryContents",
+                "sectionListRenderer",
+                "contents",
+                0,
+                "itemSectionRenderer",
+                "contents"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
+    if (flags=="ytsearch_continuation"){
+        return safeGet(
+            resoponseContext,
+            listOf(
+                "onResponseReceivedCommands",
+                0,
+                "appendContinuationItemsAction",
+                "continuationItems",
+                0,
+                "itemSectionRenderer",
+                "contents"
+            ),
+            JSONArray()
+        ) as JSONArray
+    }
+
 
 
     if (flags=="playlist"){

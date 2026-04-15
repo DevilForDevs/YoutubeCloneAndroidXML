@@ -14,11 +14,10 @@ class VideoDetailsHolder(
         binding.textView15.text=videoDetails.firstHasTag
         binding.textView17.text=videoDetails.hashTags
         binding.apply {
-            textView18.text=videoDetails.likes
-            textView19.text=videoDetails.dislikes
             textView21.text=videoDetails.channelName
             textView23.text=videoDetails.subscriberCount+" subscribers"
             textView26.text=videoDetails.commentsCount
+            actionLayout.likes.text=videoDetails.likes
         }
         Glide.with(binding.imageView24)
             .load(videoDetails.channelBigThumb)

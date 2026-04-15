@@ -19,10 +19,15 @@ class FullscreenManager(
 ) {
 
     fun setup() {
+
         psv.isFullScreen.observe(lifecycleOwner) { isFull ->
             applyOrientation(isFull)
             updateUI(isFull)
         }
+        binding.playerUI.imageView13.setOnClickListener {
+            toggleFullScreen()
+        }
+
     }
 
     private fun applyOrientation(isFull: Boolean) {
@@ -50,5 +55,20 @@ class FullscreenManager(
             if (isFull) R.drawable.baseline_fullscreen_exit_24
             else R.drawable.baseline_fullscreen_24
         )
+        if (isFull){
+            val params = binding.playerUI.linearLayout.layoutParams as ViewGroup.MarginLayoutParams
+            params.bottomMargin = 20.dp
+            binding.playerUI.linearLayout.layoutParams = params
+        }else{
+            val params = binding.playerUI.linearLayout.layoutParams as ViewGroup.MarginLayoutParams
+            params.bottomMargin = 0.dp
+            binding.playerUI.linearLayout.layoutParams = params
+        }
+
+
+    }
+
+    private fun toggleFullScreen() {
+        psv.isFullScreen.value = !(psv.isFullScreen.value ?: false)
     }
 }
