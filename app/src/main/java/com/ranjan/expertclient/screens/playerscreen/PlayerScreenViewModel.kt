@@ -178,8 +178,9 @@ class PlayerScreenViewModel : ViewModel() {
         } else {
             val cp = current_playlistId.value
             if (cp != videoItem.playlistId) {
-                current_playlistId.postValue(videoItem.playlistId)
-                loadPlaylist(videoItem.playlistId, visitorId)
+                /*misleading zone ,,by all parsers output videoId is acutaly palylistid and palylistid is acutaly videoId*/
+                current_playlistId.postValue(videoItem.videoId)
+                loadPlaylist(videoItem.videoId, visitorId)
             }
 
         }
@@ -190,7 +191,7 @@ class PlayerScreenViewModel : ViewModel() {
         continuation=null
         val result= prasePlaylist(JSONObject(response),"playlist")
         val channelPhoto = result.metaData?.channelAvtar
-        suggestions.postValue(result.videos.map { it.copy(channelAvtar = channelPhoto, playlistId = playlistId) } as MutableList<VideoItem>?)
+        suggestions.postValue(result.videos.map { it.copy(channelAvtar = channelPhoto, videoId = playlistId) } as MutableList<VideoItem>?)
         continuation=result.continuation
 
 
