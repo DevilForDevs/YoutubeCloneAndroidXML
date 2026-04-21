@@ -2,13 +2,12 @@
 
 [![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
 [![XML](https://img.shields.io/badge/XML-Developer%20Guide-FF6F00)](https://developer.android.com/guide/topics/resources/layout-resource)
-[![Figma](https://img.shields.io/badge/Figma-UI%20Kit-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/file/REPLACE_WITH_YOUR_PROJECT_FILE_ID/Youtube-Clone-UI-Kit)
+[![Figma](https://img.shields.io/badge/Figma-UI%20Kit-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/design/Y4IBRB33ogPXuVO0xY4KtF/Youtube-Clone--Community-?m=auto&t=A9ELVzOoKtuBWSsl-6)
 
 This project is a Youtube clone built for Android using XML layouts. The goal is to create a visually appealing and functional application that mimics the Youtube interface.
 
 ## Figma UI Kit
-You can find the Figma UI kit used for this project [here](https://www.figma.com/file/REPLACE_WITH_YOUR_PROJECT_FILE_ID/Youtube-Clone-UI-Kit). Replace `REPLACE_WITH_YOUR_PROJECT_FILE_ID` with the actual shared Figma file ID for this project.
-
+You can find the Figma UI kit used for this project [here](https://www.figma.com/design/Y4IBRB33ogPXuVO0xY4KtF/Youtube-Clone--Community-?m=auto&t=A9ELVzOoKtuBWSsl-6).
 ## Modularization
 The project is structured in a modular fashion, allowing for better separation of concerns and easier maintainability. Each module represents a distinct feature or functionality of the application.
 
@@ -17,11 +16,17 @@ We utilize the ViewModel architecture from Android's architecture components. Th
 
 ## Screenshots
 ![Feeds Screen](screenshots/feedsscreen.jpg)
+
 ![Portrait Player With Suggestions](screenshots/portratplayerwithsuggestions.jpg)
+
 ![Search Result Screen](screenshots/searchresultscreen.jpg)
+
 ![Landscape Player With Controls Visible](screenshots/landscapepalyerwithcontrolsvisible.jpg)
+
 ![Channel Shorts Tab](screenshots/chanellscreenshortstab.jpg)
+
 ![Channel Playlist Tab](screenshots/channelscreeenplaylisttab.jpg)
+
 ![Channel Videos Tab](screenshots/channelscreenvideostab.jpg)
 
 ## Additional Information
