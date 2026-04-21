@@ -3,6 +3,7 @@ package com.ranjan.expertclient.screens.playerscreen.controllers
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Resources
+import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,11 +43,14 @@ class FullscreenManager(
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsetsCompat.Type.systemBars())
+            binding.playerUI.textView36.text= psv.videoDetails.value?.title
+            binding.playerUI.textView36.visibility=View.VISIBLE
         } else {
             activity.requestedOrientation =
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
             WindowCompat.setDecorFitsSystemWindows(window, true)
             controller.show(WindowInsetsCompat.Type.systemBars())
+            binding.playerUI.textView36.visibility=View.INVISIBLE
         }
     }
 

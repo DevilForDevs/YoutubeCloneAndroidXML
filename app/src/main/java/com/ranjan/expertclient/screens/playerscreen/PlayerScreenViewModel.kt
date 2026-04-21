@@ -2,7 +2,6 @@ package com.ranjan.expertclient.screens.playerscreen
 
 import androidx.annotation.OptIn
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,11 +11,8 @@ import com.ranjan.expertclient.apiendpoints.getStreamingData
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerManager
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
-import com.ranjan.expertclient.screens.playerscreen.utils.WatchNextBrowse
-import com.ranjan.expertclient.screens.playerscreen.utils.YtPlaylistBrowseFetcher
+import com.ranjan.expertclient.screens.playerscreen.utils.YtHelpers
 import com.ranjan.expertclient.screens.playerscreen.utils.getFmtList
-import com.ranjan.expertclient.screens.playerscreen.utils.parseWatchHtml
-import com.ranjan.expertclient.screens.playerscreen.utils.prasePlaylist
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,10 +21,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.text.NumberFormat
-import java.util.Locale
 
 
+@Suppress("unused")
 class PlayerScreenViewModel : ViewModel() {
     val isLoading = MutableLiveData(false)
     val isPaused = MutableLiveData(false)
@@ -47,6 +42,38 @@ class PlayerScreenViewModel : ViewModel() {
     var _isSeeking = MutableLiveData(false)
     val current_playlistId = MutableLiveData<String?>()
     val currentResolution = MutableLiveData<String?>()
+    val systemVolume = MutableLiveData<Int?>()
+    val userVolume = MutableLiveData<Int?>()
+    val systemBrightness = MutableLiveData<Int?>()
+    val userBrightness = MutableLiveData<Int?>()
+
+    fun rememberSystemVolume(volume: Int) {
+        if (systemVolume.value == null) {
+            systemVolume.value = volume
+        }
+    }
+
+    fun rememberUserVolume(volume: Int) {
+        userVolume.value = volume
+    }
+
+    fun rememberSystemBrightness(brightness: Int) {
+        if (systemBrightness.value == null) {
+            systemBrightness.value = brightness
+        }
+    }
+
+    fun rememberUserBrightness(brightness: Int) {
+        userBrightness.value = brightness
+    }
+
+    fun preferredVolume(): Int? {
+        return userVolume.value ?: systemVolume.value
+    }
+
+    fun preferredBrightness(): Int? {
+        return userBrightness.value ?: systemBrightness.value
+    }
 
     private var isRequestInFlight = false
     val loadingMore = MutableLiveData(false)
@@ -137,26 +164,11 @@ class PlayerScreenViewModel : ViewModel() {
         stopProgressUpdates()
     }
 
-    fun loadSuggestions(visitorId: String,videoItem: VideoItem,video_details: JSONObject){
-        val playerResponse= WatchNextBrowse.getSuggestions(videoItem.playlistId?:videoItem.videoId,null,visitorId,"2.20260324.05.00")
-        val result= parseWatchHtml(playerResponse,"watchInitial")
-        val view=video_details.getString("viewCount").toInt()
-        val localizedViewCount = NumberFormat
-            .getInstance(Locale.getDefault())
-            .format(view)+" view • "+videoItem.publishedOn
-        val keywordsArray = video_details.optJSONArray("keywords")
-
-        val keywordsList = mutableListOf<String>()
-
-        if (keywordsArray != null) {
-            for (i in 0 until keywordsArray.length()) {
-                val k = keywordsArray.optString(i)
-                if (!k.isNullOrBlank()) {
-                    keywordsList.add(k.trim())
-                }
-            }
-        }
-
+    fun loadSuggestions(visitorId: String, videoItem: VideoItem, video_details: JSONObject) {
+        val watchData = YtHelpers.getInitialWatchData(videoItem, visitorId, video_details)
+        val result = watchData.initialData
+        val localizedViewCount = watchData.localizedViewCount
+        val keywordsList = watchData.keywords
 
         videoDetails.postValue(
             result.videoDetails?.copy(
@@ -179,6 +191,8 @@ class PlayerScreenViewModel : ViewModel() {
             val cp = current_playlistId.value
             if (cp != videoItem.playlistId) {
                 /*misleading zone ,,by all parsers output videoId is acutaly palylistid and palylistid is acutaly videoId*/
+                /*most conents are videoItem with videoId field a videoItem(regular) comes leading to palyist VideoItem(that already might have same video) this will collaspe diffutils*/
+                /*using double filters in difutils will might make the diffutils slow*/
                 current_playlistId.postValue(videoItem.videoId)
                 loadPlaylist(videoItem.videoId, visitorId)
             }
@@ -186,52 +200,50 @@ class PlayerScreenViewModel : ViewModel() {
         }
 
     }
-    fun loadPlaylist(playlistId: String,visitorId: String){
-        val response = YtPlaylistBrowseFetcher.fetch("browseId", "VL$playlistId", null,visitorId)
-        continuation=null
-        val result= prasePlaylist(JSONObject(response),"playlist")
+    fun loadPlaylist(playlistId: String, visitorId: String) {
+        continuation = null
+        val result = YtHelpers.getPlaylist(playlistId, visitorId)
         val channelPhoto = result.metaData?.channelAvtar
-        suggestions.postValue(result.videos.map { it.copy(channelAvtar = channelPhoto, videoId = playlistId) } as MutableList<VideoItem>?)
-        continuation=result.continuation
-
-
+        suggestions.postValue(result.videos.map {
+            it.copy(
+                channelAvtar = channelPhoto,
+                videoId = playlistId
+            )
+        }.toMutableList())
+        continuation = result.continuation
     }
-    fun loadMoreSuggestions(visitorId: String?){
+    fun loadMoreSuggestions(visitorId: String?) {
         val cont = continuation ?: return
         val visitor = visitorId ?: return
 
-        if (isRequestInFlight) return   // ✅ instant check
+        if (isRequestInFlight) return
 
         isRequestInFlight = true
         loadingMore.postValue(true)
-        val currentitem=suggestions.value?.find { it.videoId == currentVideoId }
+        val currentitem = suggestions.value?.find { it.videoId == currentVideoId }
 
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val resultVideos = if (currentitem?.playlistId == null) {
+                    val result = YtHelpers.getNextSuggestions(currentVideoId ?: "", cont, visitor)
+                    continuation = result.continuation
+                    result.videos
+                } else {
+                    val result = YtHelpers.getPlaylistContinuation(cont, visitor)
+                    continuation = result.continuation
+                    result.videos
+                }
 
-        viewModelScope.launch(Dispatchers.IO){
-            if (currentitem?.playlistId ==null){
-                val playerResponse= WatchNextBrowse.getSuggestions(currentVideoId?:"",cont,visitor,"2.20260324.05.00")
-                val result= parseWatchHtml(playerResponse,"watchContinuation")
-                val oldVideos=suggestions.value
-                if (oldVideos != null) {
-                    suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
+                suggestions.value?.let { oldVideos ->
+                    suggestions.postValue((oldVideos + resultVideos).toMutableList())
                 }
-                continuation=result.continuation
-                isRequestInFlight=false
-                loadingMore.postValue(false)
-            }else{
-                val response = YtPlaylistBrowseFetcher.fetch("continuation",cont, null,visitorId)
-                val result= prasePlaylist(JSONObject(response),"playlist_continuation")
-                val oldVideos=suggestions.value
-                if (oldVideos != null) {
-                    suggestions.postValue((oldVideos+result.videos) as MutableList<VideoItem>?)
-                }
-                continuation=result.continuation
-                isRequestInFlight=false
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isRequestInFlight = false
                 loadingMore.postValue(false)
             }
-
         }
-
     }
 
 

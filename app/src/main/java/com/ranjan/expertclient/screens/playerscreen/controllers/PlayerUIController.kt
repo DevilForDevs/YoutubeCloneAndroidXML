@@ -1,7 +1,11 @@
 package com.ranjan.expertclient.screens.playerscreen.controllers
 
+import android.content.Context
+import android.media.AudioManager
+import android.provider.Settings
 import android.view.View
 import android.widget.SeekBar
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
@@ -12,8 +16,13 @@ class PlayerUIController(
     private val binding: PlayerScreenBinding,
     private val lifecycleOwner: LifecycleOwner,
     private val psv: PlayerScreenViewModel,
-    private val playerManager: PlayerManager
+    private val playerManager: PlayerManager,
+    private val activity: FragmentActivity
 ) {
+
+    private val audioManager by lazy {
+        activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    }
 
     fun setup() {
 
@@ -25,6 +34,14 @@ class PlayerUIController(
             toggleControls()
         }
 
+        setupPlaybackSeekBar()
+        setupVolumeSeekBar()
+        setupBrightnessSeekBar()
+
+        observe()
+    }
+
+    private fun setupPlaybackSeekBar() {
         binding.playerUI.linearLayout.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
@@ -38,8 +55,73 @@ class PlayerUIController(
                 override fun onStopTrackingTouch(seekBar: SeekBar) {}
             }
         )
+    }
 
-        observe()
+    private fun setupVolumeSeekBar() {
+        val currentVolume = psv.preferredVolume() ?: audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+
+        psv.rememberSystemVolume(currentVolume)
+
+        binding.playerUI.seekBar.max = maxVolume
+        binding.playerUI.seekBar.progress = currentVolume.coerceIn(0, maxVolume)
+        psv.rememberUserVolume(binding.playerUI.seekBar.progress)
+
+        binding.playerUI.seekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        val clamped = progress.coerceIn(0, maxVolume)
+                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, clamped, 0)
+                        psv.rememberUserVolume(clamped)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+            }
+        )
+    }
+
+    private fun setupBrightnessSeekBar() {
+        val currentBrightness = psv.preferredBrightness() ?: getCurrentBrightnessProgress()
+
+        psv.rememberSystemBrightness(getCurrentBrightnessProgress())
+
+        binding.playerUI.seekBar3.max = 100
+        binding.playerUI.seekBar3.progress = currentBrightness.coerceIn(0, 100)
+        psv.rememberUserBrightness(binding.playerUI.seekBar3.progress)
+        applyWindowBrightness(binding.playerUI.seekBar3.progress)
+
+        binding.playerUI.seekBar3.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                    if (fromUser) {
+                        val clamped = progress.coerceIn(0, 100)
+                        psv.rememberUserBrightness(clamped)
+                        applyWindowBrightness(clamped)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {}
+            }
+        )
+    }
+
+    private fun getCurrentBrightnessProgress(): Int {
+        val systemBrightness = Settings.System.getInt(
+            activity.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            128
+        )
+        return ((systemBrightness / 255f) * 100).toInt().coerceIn(0, 100)
+    }
+
+    private fun applyWindowBrightness(progress: Int) {
+        val params = activity.window.attributes
+        params.screenBrightness = progress.coerceIn(0, 100) / 100f
+        activity.window.attributes = params
     }
 
     private fun observe() {

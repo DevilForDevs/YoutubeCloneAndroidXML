@@ -49,7 +49,8 @@ class PlayerScreen : Fragment() {
             binding = binding,
             lifecycleOwner = viewLifecycleOwner,
             psv = psv,
-            playerManager = playerManager
+            playerManager = playerManager,
+            activity = requireActivity()
         )
         val fullscreenManager = FullscreenManager(
             activity = requireActivity(),
