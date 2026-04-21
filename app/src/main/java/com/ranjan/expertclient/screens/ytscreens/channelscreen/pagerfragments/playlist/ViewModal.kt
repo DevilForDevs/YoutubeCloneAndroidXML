@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments
+package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.playlist
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.playerscreen.utils.YtPlaylistBrowseFetcher
 import com.ranjan.expertclient.screens.ytscreens.channelscreen.models.ChannelTab
-import com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.videos.parseVideosTab
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -20,14 +19,16 @@ class ViewModal: ViewModel() {
     var isRequesting=false
     var continuation:String?=null
     val isLoading= MutableLiveData(false)
+    private var activeBrowseId: String? = null
+    private var requestId: Long = 0L
 
     companion object {
         private const val TAG = "ChannelVideosVM"
     }
 
     fun loadVideos(visitorId:String,channelTab: ChannelTab){
-
-        if (isRequesting) return
+        activeBrowseId = channelTab.browserId
+        val currentRequestId = ++requestId
         continuation = null
         videos.postValue(mutableListOf())
         isLoading.postValue(true)
@@ -36,14 +37,17 @@ class ViewModal: ViewModel() {
             try {
                 val response= YtPlaylistBrowseFetcher.fetch("browseId",channelTab.browserId,channelTab.paras,visitorId)
                 val json= JSONObject(response)
-                val result= parseVideosTab(json, key = "initial", tabIndex = channelTab.tabIndex)
+                val result= extractPlaylistsFromBrowse(json,  tabIndex = channelTab.tabIndex)
+                if (currentRequestId != requestId || activeBrowseId != channelTab.browserId) return@launch
                 videos.postValue(result.videos)
                 continuation=result.continuation
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load channel videos", e)
             } finally {
-                isRequesting=false
-                isLoading.postValue(false)
+                if (currentRequestId == requestId) {
+                    isRequesting=false
+                    isLoading.postValue(false)
+                }
             }
         }
 
@@ -52,13 +56,16 @@ class ViewModal: ViewModel() {
     fun loadContinuationItems(visitorId:String,channelTab: ChannelTab){
         if (isRequesting) return
         if (continuation==null)return
+        if (activeBrowseId != channelTab.browserId) return
+        val currentRequestId = ++requestId
         isLoading.postValue(true)
         isRequesting=true
         viewModelScope.launch(Dispatchers.IO){
             try {
                 val response= YtPlaylistBrowseFetcher.fetch("continuation",continuation?:"",channelTab.paras,visitorId)
                 val json= JSONObject(response)
-                val result= parseVideosTab(json, key = "continuation")
+                val result=extractPlaylistsFromBrowse(json,null)
+                if (currentRequestId != requestId || activeBrowseId != channelTab.browserId) return@launch
 
                 val oldVideos=videos.value
                 val channelAvtar= oldVideos?.firstOrNull()?.channelAvtar
@@ -69,11 +76,11 @@ class ViewModal: ViewModel() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to load continuation videos", e)
             } finally {
-                isRequesting=false
-                isLoading.postValue(false)
+                if (currentRequestId == requestId) {
+                    isRequesting=false
+                    isLoading.postValue(false)
+                }
             }
         }
     }
-
-
 }

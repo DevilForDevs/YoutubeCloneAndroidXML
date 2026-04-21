@@ -21,6 +21,7 @@ class ChannelScreenViewModel: ViewModel() {
 
     fun loadTabs(browseId: String, visitorId: String) {
         if (currentBrowseId.value==browseId) return
+        currentBrowseId.value = browseId
         viewModelScope.launch(Dispatchers.IO) {
 
             val response = YtPlaylistBrowseFetcher.fetch("browseId", browseId, null, visitorId)
@@ -124,7 +125,9 @@ class ChannelScreenViewModel: ViewModel() {
                     ))
                 }
             }
-            
+
+
+            this@ChannelScreenViewModel.tabs.postValue(mutableListOf())
             this@ChannelScreenViewModel.tabs.postValue(_tabs)
 
             channelMetaData.postValue(ChannelMetaData(

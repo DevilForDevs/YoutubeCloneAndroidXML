@@ -4,5 +4,10 @@
         <item name="colorOnSurface">@color/secondTextColor</item>
     </style>
 
+    <style name="ShapeAppearanceOverlay_ExpertClient_Corner20">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+    </style>
+
     <style name="Theme.ExpertClient" parent="Base.Theme.ExpertClient" />
 </resources>

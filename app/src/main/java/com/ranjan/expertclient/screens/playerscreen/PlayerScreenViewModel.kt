@@ -51,18 +51,7 @@ class PlayerScreenViewModel : ViewModel() {
     private var isRequestInFlight = false
     val loadingMore = MutableLiveData(false)
 
-    val showLoading = MediatorLiveData<Boolean>().apply {
-        fun update() {
-            value = (isLoading.value == true) || (isPaused.value == true)
-        }
-
-        addSource(isLoading) { update() }
-        addSource(isPaused) { update() }
-    }
-
-
-
-
+    
     fun startProgressUpdates(player: ExoPlayer) {
         progressJob?.cancel() // stop old loop if any
 
@@ -92,7 +81,7 @@ class PlayerScreenViewModel : ViewModel() {
         currentVideoId = videoItem.videoId
 
         val streamingData = getStreamingData(
-            videoItem.playlistId ?: videoItem.videoId,
+            videoItem.playlistId?:videoItem.videoId,
             visitorData = visitorId
         )
 
@@ -123,7 +112,7 @@ class PlayerScreenViewModel : ViewModel() {
                 playerManager.play(formats) // already on Main thread ✅
                 withContext(Dispatchers.IO){
                     loadSuggestions(
-                        videoItem.videoId, visitorId, videoItem,
+                         visitorId, videoItem,
                         video_details =playerResponse.getJSONObject("playerResponse").getJSONObject("videoDetails"),
                     )
                 }
@@ -148,8 +137,8 @@ class PlayerScreenViewModel : ViewModel() {
         stopProgressUpdates()
     }
 
-    fun loadSuggestions(videoId: String,visitorId: String,videoItem: VideoItem,video_details: JSONObject){
-        val playerResponse= WatchNextBrowse.getSuggestions(videoId,null,visitorId,"2.20260324.05.00")
+    fun loadSuggestions(visitorId: String,videoItem: VideoItem,video_details: JSONObject){
+        val playerResponse= WatchNextBrowse.getSuggestions(videoItem.playlistId?:videoItem.videoId,null,visitorId,"2.20260324.05.00")
         val result= parseWatchHtml(playerResponse,"watchInitial")
         val view=video_details.getString("viewCount").toInt()
         val localizedViewCount = NumberFormat
@@ -168,6 +157,7 @@ class PlayerScreenViewModel : ViewModel() {
             }
         }
 
+
         videoDetails.postValue(
             result.videoDetails?.copy(
                 title = video_details.getString("title"),
@@ -182,14 +172,14 @@ class PlayerScreenViewModel : ViewModel() {
         )
 
 
-        if (videoItem.playlistId==null){
+        if (videoItem.playlistId == null) {
             suggestions.postValue(result.videos)
-            continuation=result.continuation
-        }else{
-            val cp=current_playlistId.value
-            if (cp!=videoId){
-                current_playlistId.value=videoId
-                loadPlaylist(videoId,visitorId)
+            continuation = result.continuation
+        } else {
+            val cp = current_playlistId.value
+            if (cp != videoItem.playlistId) {
+                current_playlistId.postValue(videoItem.playlistId)
+                loadPlaylist(videoItem.playlistId, visitorId)
             }
 
         }

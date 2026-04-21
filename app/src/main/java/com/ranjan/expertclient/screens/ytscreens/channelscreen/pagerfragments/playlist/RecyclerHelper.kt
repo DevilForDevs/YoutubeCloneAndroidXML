@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.videos
+package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.playlist
 
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
@@ -6,19 +6,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ranjan.expertclient.databinding.ChannelScreenTabBinding
 import com.ranjan.expertclient.models.VideoItem
-import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
 import com.ranjan.expertclient.screens.ytscreens.channelscreen.models.ChannelTab
+import com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.playlist.widget.PlaylistAdapter
 
 class RecyclerHelper(
     private val binding: ChannelScreenTabBinding,
     private val lifecycleOwner: LifecycleOwner,
     private val viewModel: ViewModal,
     private val onItemClick: (item: VideoItem) -> Unit,
+    private val onBrowseClick:(item:VideoItem)-> Unit,
     private val visitorId: String,
     private val tabProvider: () -> ChannelTab?
 ) {
     fun setup(){
-        val adapter=VideosColumnAdapter(onItemClick,::onChannelClick)
+        val adapter= PlaylistAdapter(
+            playPlaylist = onItemClick,
+            viewPlaylist = onBrowseClick
+        )
         binding.recycler.layoutManager = LinearLayoutManager(binding.root.context)
         binding.recycler.adapter=adapter
         viewModel.videosList.observe(lifecycleOwner){
@@ -43,7 +47,5 @@ class RecyclerHelper(
 
     }
 
-    fun onChannelClick(browseId: String){
 
-    }
 }

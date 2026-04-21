@@ -2,19 +2,17 @@ package com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.vide
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ranjan.expertclient.databinding.HomeScreenShortItemBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgets.ShortItemHolder
 
-class ShortsAdapter : RecyclerView.Adapter<ShortItemHolder>() {
-
-    private val items = mutableListOf<VideoItem>()
+class ShortsAdapter : ListAdapter<VideoItem, ShortItemHolder>(VideoDiffCallback()) {
 
     fun setData(list: List<VideoItem>) {
-        items.clear()
-        items.addAll(list)
-        notifyDataSetChanged()
+        submitList(list)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ShortItemHolder {
@@ -27,8 +25,16 @@ class ShortsAdapter : RecyclerView.Adapter<ShortItemHolder>() {
     }
 
     override fun onBindViewHolder(holder: ShortItemHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = items.size
+    class VideoDiffCallback : DiffUtil.ItemCallback<VideoItem>() {
+        override fun areItemsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+            return oldItem.videoId == newItem.videoId
+        }
+
+        override fun areContentsTheSame(oldItem: VideoItem, newItem: VideoItem): Boolean {
+            return oldItem == newItem
+        }
+    }
 }

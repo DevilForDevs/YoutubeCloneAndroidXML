@@ -11,16 +11,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.BrowserScreenBinding
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
-import kotlin.getValue
 
 class BrowserScreen : Fragment() {
     private lateinit var binding: BrowserScreenBinding
@@ -56,9 +51,7 @@ class BrowserScreen : Fragment() {
             insets
         }
 
-       /* binding.webView.post {
-            WebView.setWebContentsDebuggingEnabled(true)
-        }*/
+
 
         binding.webView.apply {
             settings.javaScriptEnabled = true

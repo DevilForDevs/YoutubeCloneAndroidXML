@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.ChannelScreenTabBinding
@@ -13,15 +14,16 @@ import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.Store
 import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
 import com.ranjan.expertclient.screens.ytscreens.channelscreen.ChannelScreenViewModel
-import com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.ViewModal
+import com.ranjan.expertclient.screens.ytscreens.channelscreen.models.ChannelTab
 
 class VideosFragment : Fragment() {
 
     private lateinit var binding: ChannelScreenTabBinding
     private val viewModel by activityViewModels<ChannelScreenViewModel>()
-    private val viewModal by activityViewModels<ViewModal>()
+    private val viewModal by viewModels<ViewModal>()
     private val store by activityViewModels<Store>()
     private val sharedViewModal by activityViewModels<SharedVideoViewModel>()
+    private var currentTab: ChannelTab? = null
 
 
 
@@ -38,20 +40,23 @@ class VideosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         viewModel.tabList.observe(viewLifecycleOwner) { tabs ->
             val tab = tabs.find { it.title == "Videos" } ?: return@observe
+            currentTab = tab
 
-            val recyclerHelper = RecyclerHelper(
-                binding,
-                viewLifecycleOwner,
-                viewModal,
-                ::onItemClick,
-                store.visitorId ?: "",
-                tab
-            )
-            recyclerHelper.setup()
+            if (binding.recycler.adapter == null) {
+                val recyclerHelper = RecyclerHelper(
+                    binding,
+                    viewLifecycleOwner,
+                    viewModal,
+                    ::onItemClick,
+                    store.visitorId ?: "",
+                    { currentTab }
+                )
+                recyclerHelper.setup()
+            }
 
             viewModal.loadVideos(store.visitorId ?: "", tab)
-        }
 
+        }
 
     }
 

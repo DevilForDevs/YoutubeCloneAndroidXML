@@ -2,6 +2,7 @@ package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.v
 
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.safeGet
+import com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.ChannelResult
 import org.json.JSONArray
 import org.json.JSONObject
 

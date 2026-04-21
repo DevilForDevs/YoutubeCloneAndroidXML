@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments.videos
+package com.ranjan.expertclient.screens.ytscreens.channelscreen.pagerfragments
 
 import com.ranjan.expertclient.models.VideoItem
 
