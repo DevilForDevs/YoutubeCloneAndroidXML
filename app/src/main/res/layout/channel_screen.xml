@@ -36,10 +36,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
+        android:ellipsize="end"
         android:fontFamily="@font/inter_18pt_extra_bold"
+        android:lines="1"
         android:text="Sharukh"
         android:textColor="?colorOnSurface"
-        android:textSize="32sp"
+        android:textSize="24sp"
         app:layout_constraintStart_toEndOf="@+id/imageView30"
         app:layout_constraintTop_toTopOf="@+id/imageView30" />
 
