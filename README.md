@@ -65,6 +65,3 @@ Feel free to explore the repository, contribute, or report issues.
 Happy coding 🚀
 
 ---
-
-> ⚠️ Note: Markdown does not support image resizing.  
-> For consistent appearance, resize your images before uploading (recommended width: ~800–1200px).
