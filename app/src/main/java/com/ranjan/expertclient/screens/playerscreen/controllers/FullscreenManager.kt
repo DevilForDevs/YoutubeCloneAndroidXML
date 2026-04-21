@@ -6,6 +6,7 @@ import android.content.res.Resources
 import android.view.ViewGroup
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
@@ -37,12 +38,25 @@ class FullscreenManager(
         if (isFull) {
             activity.requestedOrientation =
                 ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsetsCompat.Type.systemBars())
         } else {
             activity.requestedOrientation =
                 ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            WindowCompat.setDecorFitsSystemWindows(window, true)
             controller.show(WindowInsetsCompat.Type.systemBars())
         }
+    }
+
+    fun reapplyImmersiveIfNeeded() {
+        if (psv.isFullScreen.value != true) return
+        val window = activity.window
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.hide(WindowInsetsCompat.Type.systemBars())
     }
     val Int.dp: Int
         get() = (this * Resources.getSystem().displayMetrics.density).toInt()

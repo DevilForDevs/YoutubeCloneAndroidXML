@@ -8,7 +8,8 @@ import com.ranjan.expertclient.models.VideoItem
 class VideoHolder(
     private val binding: HomeScreenVideosColumnVideoBinding
 ) : RecyclerView.ViewHolder(binding.root) {
-    fun bind(item: VideoItem,onItemClick:(item: VideoItem)-> Unit) {
+    fun bind(item: VideoItem,onItemClick:(item: VideoItem)-> Unit,onChannelClick:(id:String)-> Unit) {
+
 
         Glide.with(binding.imageView5)
             .load("https://i.ytimg.com/vi/${item.playlistId?:item.videoId}/hqdefault.jpg")
@@ -23,6 +24,10 @@ class VideoHolder(
         binding.imageView5.setOnClickListener {
             onItemClick(item)
         }
+        binding.imageView6.setOnClickListener {
+          onChannelClick(item.channelUrl?:"")
+        }
+
 
 
     }

@@ -29,6 +29,12 @@
         <action
             android:id="@+id/action_bottomNavScreen_to_playerScreen"
             app:destination="@id/playerScreen" />
+        <action
+            android:id="@+id/action_bottomNavScreen_to_playlistScreen"
+            app:destination="@id/playlistScreen" />
+        <action
+            android:id="@+id/action_bottomNavScreen_to_channelScreen"
+            app:destination="@id/channelScreen" />
     </fragment>
     <fragment
         tools:layout="@layout/browser_screen"
@@ -47,10 +53,41 @@
         <action
             android:id="@+id/action_searchScreen_to_playerScreen"
             app:destination="@id/playerScreen" />
+        <action
+            android:id="@+id/action_searchScreen_to_playlistScreen"
+            app:destination="@id/playlistScreen" />
     </fragment>
     <fragment
         android:id="@+id/playerScreen"
         android:name="com.ranjan.expertclient.screens.playerscreen.PlayerScreen"
         android:label="PlayerScreen"
-        tools:layout="@layout/player_screen"/>
+        tools:layout="@layout/player_screen">
+        <action
+            android:id="@+id/action_playerScreen_to_channelScreen"
+            app:destination="@id/channelScreen" />
+        <action
+            android:id="@+id/action_playerScreen_to_playlistScreen"
+            app:destination="@id/playlistScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/channelScreen"
+        android:name="com.ranjan.expertclient.screens.ytscreens.channelscreen.ChannelScreen"
+        android:label="ChannelScreen"
+        tools:layout="@layout/channel_screen">
+        <action
+            android:id="@+id/action_channelScreen_to_playlistScreen"
+            app:destination="@id/playlistScreen" />
+        <argument
+            android:name="id"
+            app:argType="string"
+            android:defaultValue='"none"' />
+        <action
+            android:id="@+id/action_channelScreen_to_playerScreen"
+            app:destination="@id/playerScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/playlistScreen"
+        android:name="com.ranjan.expertclient.screens.ytscreens.playlistscreen.PlaylistScreen"
+        android:label="PlaylistScreen"
+        tools:layout="@layout/playlist_screen"/>
 </navigation>

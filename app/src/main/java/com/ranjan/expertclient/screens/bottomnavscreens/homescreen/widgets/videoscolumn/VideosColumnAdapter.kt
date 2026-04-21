@@ -11,7 +11,8 @@ import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.video
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgetsholder.VideoHolder
 
 class VideosColumnAdapter(
-    private val onItemClick:(item: VideoItem)-> Unit
+    private val onItemClick:(item: VideoItem)-> Unit,
+    private val onChannelClick:(id:String)-> Unit
 ):
     androidx.recyclerview.widget.ListAdapter<VideoItem, RecyclerView.ViewHolder>(DiffCallback) {
 
@@ -38,7 +39,7 @@ class VideosColumnAdapter(
             (holder as ShortsArrayHolder).bind(item.shortsArray)
         }
         if (item.shortsArray==null){
-            (holder as VideoHolder).bind(item,onItemClick)
+            (holder as VideoHolder).bind(item,onItemClick,onChannelClick)
         }
 
     }

@@ -112,19 +112,23 @@ class PlayerScreenViewModel : ViewModel() {
         durationProgress.postValue(0L)
 
         viewModelScope.launch {
-            val playerResponse = withContext(Dispatchers.IO) {
-                loadVideoAndGetFormats(videoItem, visitorId)
-            }
+            try {
+                val playerResponse = withContext(Dispatchers.IO) {
+                    loadVideoAndGetFormats(videoItem, visitorId)
+                }
 
-            val formats = getFmtList(playerResponse)
-            adaptiveFormatsList = formats
+                val formats = getFmtList(playerResponse)
+                adaptiveFormatsList = formats
 
-            playerManager.play(formats) // already on Main thread ✅
-            withContext(Dispatchers.IO){
-                loadSuggestions(
-                    videoItem.videoId, visitorId, videoItem,
-                    video_details =playerResponse.getJSONObject("playerResponse").getJSONObject("videoDetails"),
-                )
+                playerManager.play(formats) // already on Main thread ✅
+                withContext(Dispatchers.IO){
+                    loadSuggestions(
+                        videoItem.videoId, visitorId, videoItem,
+                        video_details =playerResponse.getJSONObject("playerResponse").getJSONObject("videoDetails"),
+                    )
+                }
+            }catch (e: Exception){
+                println(e.printStackTrace())
             }
         }
     }

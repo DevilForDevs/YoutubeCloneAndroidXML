@@ -8,6 +8,7 @@ import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.categ
 import com.ranjan.expertclient.screens.playerscreen.widgets.videodetails.VideoDetailsHolder
 
 class VideoDetailsAdapter(
+    private val channelClick:(id:String)-> Unit
 ) : RecyclerView.Adapter<VideoDetailsHolder>() {
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -18,7 +19,7 @@ class VideoDetailsAdapter(
             parent,
             false
         )
-        return VideoDetailsHolder(binding)
+        return VideoDetailsHolder(binding,channelClick)
     }
 
     override fun onBindViewHolder(

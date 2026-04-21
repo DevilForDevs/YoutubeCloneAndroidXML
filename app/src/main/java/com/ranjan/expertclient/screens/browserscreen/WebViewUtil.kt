@@ -88,7 +88,10 @@ fun safeGet(
                     if (cur is JSONObject) cur.opt(p) else return defaultVal
                 }
                 is Int -> {
-                    if (cur is JSONArray) cur.opt(p) else return defaultVal
+                    if (cur is JSONArray) {
+                        val index = if (p < 0) cur.length() + p else p
+                        if (index in 0 until cur.length()) cur.opt(index) else return defaultVal
+                    } else return defaultVal
                 }
                 else -> return defaultVal
             }

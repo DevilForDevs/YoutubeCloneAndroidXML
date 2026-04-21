@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.screens.browserscreen.Store
 import com.ranjan.expertclient.screens.playerscreen.controllers.FullscreenManager
@@ -37,12 +38,6 @@ class PlayerScreen : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ViewCompat.setOnApplyWindowInsetsListener(view) { view, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            view.setPadding(0, statusBarHeight, 0, 0)
-            insets
-        }
-
         playerManager = PlayerManager(
             context = requireContext(),
             psv = psv,
@@ -63,12 +58,23 @@ class PlayerScreen : Fragment() {
             lifecycleOwner = viewLifecycleOwner
         )
 
+        ViewCompat.setOnApplyWindowInsetsListener(view) { rootView, insets ->
+            val isFull = psv.isFullScreen.value == true
+            val statusBarHeight = if (isFull) 0 else insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            rootView.setPadding(0, statusBarHeight, 0, 0)
+            if (isFull) {
+                fullscreenManager.reapplyImmersiveIfNeeded()
+            }
+            insets
+        }
+
         val suggestionsController = SuggestionsController(
             binding = binding,
             psv = psv,
             lifecycleOwner = viewLifecycleOwner,
             viewModel.visitorId?:"",
-            playerManager
+            playerManager,
+            ::channelClick
         )
         val resolutionDialog = ResolutionDialog(this)
 
@@ -76,7 +82,7 @@ class PlayerScreen : Fragment() {
 
         //load inital video
         psv.loadVideo(
-            videoItem = sharedViewModel.selectedVideo.value,
+            videoItem = sharedViewModel.selectedVideo.value!!,
             visitorId = viewModel.visitorId?:"",
             playerManager
         )
@@ -104,6 +110,10 @@ class PlayerScreen : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         playerManager.release()
+    }
+    fun channelClick(id: String) {
+        val action = PlayerScreenDirections.actionPlayerScreenToChannelScreen(id)
+        findNavController().navigate(action)
     }
 
 }

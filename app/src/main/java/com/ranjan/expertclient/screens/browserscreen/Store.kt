@@ -32,7 +32,7 @@ class Store: ViewModel() {
     var feedType="mwebfeeds"
     var continuation: String?=null
     fun handleWebFeed(jsonString: String,taskCompleted:()-> Unit){
-        if (webFeeds.value.isEmpty()){
+        if (webFeeds.value?.isEmpty() ?: true){
             val finalJson = JSONObject(jsonString)
            /* if (finalJson.has("url")){
                 if (finalJson.getString("url").contains("search?prettyPrint")){

@@ -25,7 +25,7 @@ class HomeScreen : Fragment() {
     private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
 
     private lateinit var concatAdapter: ConcatAdapter
-    val videosAdapter = VideosColumnAdapter(::onItemClick)
+    val videosAdapter = VideosColumnAdapter(::onItemClick,::onChannelClick)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -96,5 +96,14 @@ class HomeScreen : Fragment() {
             .findNavController(R.id.shoppingHostFragment)
         parentNavController.navigate(R.id.action_bottomNavScreen_to_playerScreen)
 
+    }
+    // In HomeScreen.kt
+    fun onChannelClick(id: String) {
+        val bundle = Bundle().apply {
+            putString("id", id)
+        }
+        val parentNavController = requireActivity()
+            .findNavController(R.id.shoppingHostFragment)
+        parentNavController.navigate(R.id.action_bottomNavScreen_to_channelScreen, bundle)
     }
 }

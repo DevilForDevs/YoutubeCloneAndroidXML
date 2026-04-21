@@ -2,6 +2,7 @@ package com.ranjan.expertclient.screens.ytscreens.searchscreen.controllers
 
 import android.annotation.SuppressLint
 import android.view.MotionEvent
+import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.addTextChangedListener
@@ -64,10 +65,15 @@ class SearchController(
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.editTextText.text.toString()
                 ssvm.getInitialResult(query)
+                binding.editTextText.text.clear()
                 true
             } else {
                 false
             }
+        }
+        ssvm._isLoading.observe(lifecycleOwner){isLoading->
+            binding.progressBar2.visibility =
+                if (isLoading) View.VISIBLE else View.GONE
         }
         ssvm.search_items.observe(lifecycleOwner){
             adapter.submitList(it)

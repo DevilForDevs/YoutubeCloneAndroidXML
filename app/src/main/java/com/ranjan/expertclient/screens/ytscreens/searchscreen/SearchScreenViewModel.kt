@@ -16,7 +16,7 @@ import org.json.JSONObject
 class SearchScreenViewModel: ViewModel() {
     private val searchItems = MutableLiveData<MutableList<VideoItem>>(mutableListOf())
     val search_items: LiveData<MutableList<VideoItem>> get() = searchItems
-    private val _isLoading = MutableLiveData<Boolean>()
+    val _isLoading = MutableLiveData<Boolean>()
     var continuation: String? =""
     var _query=""
     var inflight=false

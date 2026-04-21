@@ -30,7 +30,7 @@ class BrowserScreen : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View{
         binding= BrowserScreenBinding.inflate(inflater,container,false)
         return binding.root
     }
@@ -55,7 +55,10 @@ class BrowserScreen : Fragment() {
             view.setPadding(0, statusBarHeight, 0, 0)
             insets
         }
-        WebView.setWebContentsDebuggingEnabled(true)
+
+       /* binding.webView.post {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }*/
 
         binding.webView.apply {
             settings.javaScriptEnabled = true

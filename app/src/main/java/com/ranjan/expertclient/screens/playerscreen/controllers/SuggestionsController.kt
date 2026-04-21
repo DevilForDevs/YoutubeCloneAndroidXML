@@ -17,11 +17,12 @@ class SuggestionsController(
     private val psv: PlayerScreenViewModel,
     private val lifecycleOwner: LifecycleOwner,
     private val visitorId: String,
-    private val playerManager: PlayerManager
+    private val playerManager: PlayerManager,
+    private val channelClick:(id:String)-> Unit
 ) {
 
-    private val videosAdapter = VideosColumnAdapter(::onItemClick)
-    private val detailsAdapter = VideoDetailsAdapter()
+    private val videosAdapter = VideosColumnAdapter(::onItemClick, channelClick)
+    private val detailsAdapter = VideoDetailsAdapter(channelClick)
 
     fun setup() {
         val concat = ConcatAdapter(detailsAdapter, videosAdapter)
@@ -71,4 +72,6 @@ class SuggestionsController(
         )
         binding.suggestionRecycler.scrollToPosition(0)
     }
+
+
 }

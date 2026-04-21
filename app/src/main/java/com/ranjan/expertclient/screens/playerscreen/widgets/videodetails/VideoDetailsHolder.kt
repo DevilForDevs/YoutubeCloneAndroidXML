@@ -6,7 +6,8 @@ import com.ranjan.expertclient.databinding.PlayerScreenVideoDetailsBinding
 import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
 
 class VideoDetailsHolder(
-    private val binding: PlayerScreenVideoDetailsBinding
+    private val binding: PlayerScreenVideoDetailsBinding,
+    private val channelClick:(id:String)-> Unit
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(videoDetails: VideoDetails){
         binding.textView11.text=videoDetails.title
@@ -22,6 +23,9 @@ class VideoDetailsHolder(
         Glide.with(binding.imageView24)
             .load(videoDetails.channelBigThumb)
             .into(binding.imageView24)
+        binding.imageView24.setOnClickListener {
+           channelClick(videoDetails.channelUrl?:"")
+        }
 
     }
 }

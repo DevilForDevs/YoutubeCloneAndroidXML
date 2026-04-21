@@ -24,7 +24,7 @@ class SearchScreen : Fragment() {
     private lateinit var binding: YtSearchScreenBinding
     private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
     private val ssvm by activityViewModels<SearchScreenViewModel>()
-    val videosAdapter = VideosColumnAdapter(::onItemClick)
+    val videosAdapter = VideosColumnAdapter(::onItemClick,::onChannelClick)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -55,6 +55,9 @@ class SearchScreen : Fragment() {
     fun onItemClick(item: VideoItem){
         sharedViewModel.selectedVideo.value=item
        findNavController().navigate(R.id.action_searchScreen_to_playerScreen)
+
+    }
+    private fun onChannelClick(id: String){
 
     }
 
