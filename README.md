@@ -65,3 +65,6 @@ Feel free to explore the repository, contribute, or report issues.
 Happy coding 🚀
 
 ---
+
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).
