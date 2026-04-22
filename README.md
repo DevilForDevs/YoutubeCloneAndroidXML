@@ -8,6 +8,11 @@ This project is a **YouTube clone built for Android using XML layouts**. The goa
 
 ---
 
+## 📌 Repository Description
+An Android XML learning project that recreates core YouTube screens (feed, player, search, and channel tabs) using modular structure and ViewModel-based UI state management.
+
+---
+
 ## 🎨 Figma UI Kit
 You can find the Figma UI kit used for this project [here](https://www.figma.com/design/Y4IBRB33ogPXuVO0xY4KtF/Youtube-Clone--Community-?m=auto&t=A9ELVzOoKtuBWSsl-6).
 
