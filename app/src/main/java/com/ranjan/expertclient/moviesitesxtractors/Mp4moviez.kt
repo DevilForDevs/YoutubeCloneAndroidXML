@@ -1,0 +1,65 @@
+package com.ranjan.expertclient.moviesitesxtractors
+import com.ranjan.expertclient.apiendpoints.HtmlExtractor
+import org.json.JSONObject
+
+class Mp4moviez {
+
+    fun getFeeds(url: String): JSONObject {
+        val input = JSONObject().apply {
+            put("url", url)
+            put("schema", JSONObject(SCHEMA))
+        }
+        return HtmlExtractor.fetch(input)
+    }
+
+    companion object {
+        private const val SCHEMA = """
+        {
+            "sections": [
+                {
+                    "key": "movie_list",
+                    "selector": "body",
+                    "items": {
+                        "selector": "div.fl",
+                        "fields": {
+                            "title": { "selector": "span.moviename", "attr": "text" },
+                            "category": { "selector": "span.duration", "attr": "text" },
+                            "format": { "selector": "span.description", "attr": "text" },
+                            "detail_url": { "selector": "a", "attr": "href", "resolve_url": true },
+                            "poster": { "selector": "img", "attr": "src" }
+                        }
+                    }
+                },
+                {
+                    "key": "movie_categories",
+                    "selector": "body",
+                    "items": {
+                        "selector": "div.movies, div.movie",
+                        "fields": {
+                            "name": { "selector": "a", "attr": "text" },
+                            "url": { "selector": "a", "attr": "href", "resolve_url": true },
+                            "icon": { "selector": "img", "attr": "src", "resolve_url": true },
+                            "icon_alt": { "selector": "img", "attr": "alt" }
+                        }
+                    }
+                },
+                {
+                    "key": "pagination",
+                    "selector": "div.down",
+                    "items": {
+                        "selector": "a",
+                        "fields": {
+                            "page_number": { "selector": "a", "attr": "text" },
+                            "page_url": { "selector": "a", "attr": "href", "resolve_url": true },
+                            "type": { "selector": "a", "attr": "class" }
+                        }
+                    }
+                }
+            ]
+        }
+        """
+    }
+
+
+
+}

@@ -4,11 +4,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.ranjan.expertclient.databinding.GridItemBinding
 import com.ranjan.expertclient.databinding.HomeScreenVideosColumnVideoBinding
 import com.ranjan.expertclient.databinding.ShortsArrayHomeScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgetsholder.ShortsArrayHolder
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.widgetsholder.VideoHolder
+import com.ranjan.expertclient.screens.commanscreens.feeds_screen.GridItemHolder
 
 class VideosColumnAdapter(
     private val onItemClick:(item: VideoItem)-> Unit,
@@ -24,6 +26,14 @@ class VideosColumnAdapter(
                 false
             )
           return ShortsArrayHolder(binding)
+        }
+        if (viewType==3){
+            val binding = GridItemBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
+            return GridItemHolder(binding)
         }
         val binding = HomeScreenVideosColumnVideoBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -45,6 +55,9 @@ class VideosColumnAdapter(
     }
 
     override fun getItemViewType(position: Int): Int {
+        if (!getItem(position).yt){
+            return 3
+        }
         if (getItem(position).shortsArray!=null){
             return 2
         }

@@ -11,5 +11,9 @@ data class VideoItem(
     val duration: String? = null,
     val playlistId: String?=null,
     val shortsArray: MutableList<VideoItem>?=null,
-    val publishedOn: String?=null
+    val publishedOn: String?=null,
+    val yt: Boolean=true,
+    val pageUrl: String?=null,
+    val category: Boolean=true,
+
 )

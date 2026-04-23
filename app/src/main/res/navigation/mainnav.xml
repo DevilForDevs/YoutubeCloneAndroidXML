@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_splashScreen_to_bottomNavScreen"
             app:destination="@id/bottomNavScreen" />
+        <action
+            android:id="@+id/action_splashScreen_to_sitesChooserScreen"
+            app:destination="@id/sitesChooserScreen" />
     </fragment>
 
     <fragment
@@ -90,4 +93,21 @@
         android:name="com.ranjan.expertclient.screens.ytscreens.playlistscreen.PlaylistScreen"
         android:label="PlaylistScreen"
         tools:layout="@layout/playlist_screen"/>
+    <fragment
+        tools:layout="@layout/sites_chooser_screen"
+        android:id="@+id/sitesChooserScreen"
+        android:name="com.ranjan.expertclient.screens.sitesscreen.SitesChooserScreen"
+        android:label="SitesChooserScreen" >
+        <action
+            android:id="@+id/action_sitesChooserScreen_to_browserScreen"
+            app:destination="@id/browserScreen" />
+        <action
+            android:id="@+id/action_sitesChooserScreen_to_feedsScreen"
+            app:destination="@id/feedsScreen" />
+    </fragment>
+    <fragment
+        android:id="@+id/feedsScreen"
+        android:name="com.ranjan.expertclient.screens.commanscreens.feeds_screen.FeedsScreen"
+        android:label="FeedsScreen"
+        tools:layout="@layout/feeds_screen"/>
 </navigation>
