@@ -104,10 +104,24 @@
         <action
             android:id="@+id/action_sitesChooserScreen_to_feedsScreen"
             app:destination="@id/feedsScreen" />
+        <action
+            android:id="@+id/action_sitesChooserScreen_self"
+            app:destination="@id/sitesChooserScreen" />
+        <action
+            android:id="@+id/action_sitesChooserScreen_self2"
+            app:destination="@id/sitesChooserScreen" />
+        <action
+            android:id="@+id/action_sitesChooserScreen_to_moviesFeedsScreen"
+            app:destination="@id/moviesFeedsScreen" />
     </fragment>
     <fragment
         android:id="@+id/feedsScreen"
         android:name="com.ranjan.expertclient.screens.commanscreens.feeds_screen.FeedsScreen"
         android:label="FeedsScreen"
         tools:layout="@layout/feeds_screen"/>
+    <fragment
+        tools:layout="@layout/movies_feeds_screen"
+        android:id="@+id/moviesFeedsScreen"
+        android:name="com.ranjan.expertclient.screens.moviessitesclient.moviesfeeds.MoviesFeedsScreen"
+        android:label="MoviesFeedsScreen" />
 </navigation>

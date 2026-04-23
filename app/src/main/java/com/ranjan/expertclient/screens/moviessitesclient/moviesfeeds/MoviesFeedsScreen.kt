@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.findNavController
 import com.ranjan.expertclient.databinding.MoviesFeedsScreenBinding
+import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
 
 class MoviesFeedsScreen : Fragment() {
@@ -26,17 +29,36 @@ class MoviesFeedsScreen : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (!viewModel.goBack()) {
+                    view.findNavController().popBackStack()
+                }
+            }
+        })
+
+
+
         val helper= RecyclerHelper(
             binding = binding,
             lifecycleOwner = viewLifecycleOwner,
             viewModel =viewModel ,
-            fragment = this
+            fragment = this,
+            onItemClick = ::onMovieItemClick,
+            sharedViewModel
         )
         helper.setup()
         sharedViewModel.selectedSite.observe(viewLifecycleOwner){item ->
-            viewModel.getFeeds(item)
+            viewModel.loadRoot(item,this.requireContext())
         }
 
+    }
+    fun onMovieItemClick(item: VideoItem){
+       if (item.category){
+           viewModel.onItemClick(item,this.requireContext())
+       }else{
+           sharedViewModel.selectedVideo.postValue(item)
+       }
     }
 
 }

@@ -10,7 +10,7 @@ import com.ranjan.expertclient.screens.moviessitesclient.moviesfeeds.movieitem.M
 
 
 class MovieAdapter(
-
+    private val onItemClick:(item:VideoItem)-> Unit
 ) :  androidx.recyclerview.widget.ListAdapter<VideoItem, RecyclerView.ViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -32,9 +32,9 @@ class MovieAdapter(
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
        if (getItem(position).category){
-           (holder as MovieCategoryHolder).bind(getItem(position))
+           (holder as MovieCategoryHolder).bind(getItem(position),onItemClick)
        }else{
-           (holder as MovieItemHolder).bind(getItem(position))
+           (holder as MovieItemHolder).bind(getItem(position),onItemClick)
        }
     }
 

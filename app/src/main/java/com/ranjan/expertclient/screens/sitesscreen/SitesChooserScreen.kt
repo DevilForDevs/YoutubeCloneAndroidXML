@@ -46,11 +46,13 @@ class SitesChooserScreen : Fragment() {
         viewModel.loadSites(requireContext())
     }
     fun onItemClick(item: SiteItem){
+        sharedViewModel.selectedSite.postValue(item)
         if (item.url.contains("youtube")){
             findNavController().navigate(R.id.action_sitesChooserScreen_to_browserScreen)
-        }else{
-            sharedViewModel.selectedSite.value=item
-            findNavController().navigate(R.id.action_sitesChooserScreen_to_feedsScreen)
+        }
+        if (item.url.contains("mp4moviez")){
+            findNavController().navigate(R.id.action_sitesChooserScreen_to_moviesFeedsScreen)
+
         }
     }
 

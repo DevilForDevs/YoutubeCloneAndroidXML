@@ -9,12 +9,12 @@ class MovieCategoryHolder(
     private val binding: MovieCategoryItemBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(item: VideoItem) {
+    fun bind(item: VideoItem,onItemClick:(item:VideoItem)-> Unit) {
         binding.textView45.text = item.title
-        Glide.with(binding.imageView38)
-            .load(item.channelAvtar)
-            .circleCrop()
-            .into(binding.imageView38)
+        binding.root.setOnClickListener {
+            onItemClick(item)
+        }
+
     }
 
 

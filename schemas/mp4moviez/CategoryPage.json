@@ -6,9 +6,7 @@
       "items": {
         "selector": "div.fl",
         "fields": {
-          "title": { "selector": "span.moviename", "attr": "text" },
-          "category": { "selector": "span.duration", "attr": "text" },
-          "format": { "selector": "span.description", "attr": "text" },
+          "title": { "selector": "div", "attr": "text" },
           "detail_url": { "selector": "a", "attr": "href", "resolve_url": true },
           "poster": { "selector": "img", "attr": "src" }
         }
@@ -24,6 +22,18 @@
           "url": { "selector": "a", "attr": "href", "resolve_url": true },
           "icon": { "selector": "img", "attr": "src", "resolve_url": true },
           "icon_alt": { "selector": "img", "attr": "alt" }
+        }
+      }
+    },
+    {
+      "key": "pagination",
+      "selector": "div.down",
+      "items": {
+        "selector": "a",
+        "fields": {
+          "page_number": { "selector": "a", "attr": "text" },
+          "page_url": { "selector": "a", "attr": "href", "resolve_url": true },
+          "type": { "selector": "a", "attr": "class" }
         }
       }
     }
