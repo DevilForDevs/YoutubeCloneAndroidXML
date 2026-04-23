@@ -23,8 +23,9 @@ class SitesScreenViewModel : ViewModel() {
         _loading.postValue(true)
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val url="https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/app/src/main/java/com/ranjan/expertclient/SupportedSites.json"
                 val request = Request.Builder()
-                    .url("https://studyzem.com/sites.json")
+                    .url(url)
                     .build()
 
                 client.newCall(request).execute().use { response ->
