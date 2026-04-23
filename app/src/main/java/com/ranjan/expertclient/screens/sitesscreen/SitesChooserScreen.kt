@@ -43,7 +43,7 @@ class SitesChooserScreen : Fragment() {
             ::onItemClick
         )
         recyclerHelper.setup()
-        viewModel.loadSites()
+        viewModel.loadSites(requireContext())
     }
     fun onItemClick(item: SiteItem){
         if (item.url.contains("youtube")){

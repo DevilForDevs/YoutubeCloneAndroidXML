@@ -1,0 +1,26 @@
+{
+  "sections": [
+    {
+      "key": "download_links",
+      "selector": "body",
+      "items": {
+        "selector": "div.mast:has(a[rel='nofollow'])",
+        "fields": {
+          "title": {
+            "selector": "a[rel='nofollow']",
+            "attr": "text"
+          },
+          "url": {
+            "selector": "a[rel='nofollow']",
+            "attr": "href"
+          },
+          "size": {
+            "selector": "",
+            "attr": "text"
+          }
+        }
+      }
+    }
+  ]
+}
+
