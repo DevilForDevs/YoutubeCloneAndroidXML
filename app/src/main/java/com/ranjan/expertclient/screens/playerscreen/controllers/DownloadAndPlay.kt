@@ -25,6 +25,7 @@ class DownloadAndPlay(
     init {
         // Observe once for the lifetime of the Fragment's view
         viewModel.downloads.observe(fragment.viewLifecycleOwner) { items ->
+            println(items)
             adapter.submitList(items?.toList())
             // If dialog is showing, the adapter will update automatically
         }

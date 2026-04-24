@@ -72,8 +72,8 @@ class MoviesViewModel : ViewModel() {
                             isDownloading = activeJobs.containsKey(streamItem.url),
                             fileUrl = streamItem.url,
                             speed = "",
-                            fileName = fileName,
-                            isFinished = false,
+                            fileName = if(file.exists()) file.absolutePath else fileName,
+                            isFinished =true,
                             status = when {
                                 activeJobs.containsKey(streamItem.url) -> "Downloading..."
                                 currentLength > 0 -> "Paused"
@@ -119,8 +119,6 @@ class MoviesViewModel : ViewModel() {
     }
 
     fun action(item: DownloadItem, context: Context) {
-        if (item.isFinished) return
-        
         if (activeJobs.containsKey(item.fileUrl)) {
             activeJobs[item.fileUrl]?.cancel()
             activeJobs.remove(item.fileUrl)
