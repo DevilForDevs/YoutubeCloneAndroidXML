@@ -7,5 +7,7 @@ data class StreamItem(
     val mimeType: String,
     val height: Int?,
     val bitrate: Int,
-    var isSelected: Boolean = false
+    var isSelected: Boolean = false,
+    val resolutionString: String?=null,
+    val size: String?=null
 )

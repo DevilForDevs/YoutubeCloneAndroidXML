@@ -6,16 +6,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ranjan.expertclient.utils.getOkHttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import java.io.File
 import java.io.IOException
 
 class SitesScreenViewModel : ViewModel() {
-    private val client by lazy { OkHttpClient() }
+    private val client = getOkHttpClient()
 
     private val _sitesList = MutableLiveData<MutableList<SiteItem>>()
     val sitesList: LiveData<MutableList<SiteItem>> = _sitesList
@@ -43,6 +43,8 @@ class SitesScreenViewModel : ViewModel() {
             }
         }
     }
+
+
 
     private fun fetchSitesJson(): String {
         val sitesUrl = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/SupportedSites.json"

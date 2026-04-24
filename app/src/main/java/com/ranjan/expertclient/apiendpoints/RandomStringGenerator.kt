@@ -1,4 +1,4 @@
-package com.ranjan.videoplayer.utils
+package com.ranjan.expertclient.apiendpoints
 
 import java.security.SecureRandom
 

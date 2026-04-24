@@ -1,33 +1,79 @@
 package com.ranjan.expertclient.screens.playerscreen.controllers
 
 import android.content.Context
+import android.util.Log
 import androidx.annotation.OptIn
-import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
-import com.ranjan.expertclient.screens.browserscreen.Store
 import com.ranjan.expertclient.screens.playerscreen.PlayerScreenViewModel
-import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.ranjan.expertclient.utils.getOkHttpClient
 
+@UnstableApi
 class PlayerManager(
-    private val context: Context,
+    context: Context,
     private val psv: PlayerScreenViewModel,
-    private val sharedViewModel: SharedVideoViewModel,
-    private val viewModel: Store
+
+
+
 ) {
 
+    companion object {
+        private const val TAG = "PlayerManager"
+    }
+
     val player: ExoPlayer = ExoPlayer.Builder(context).build()
-    private val dataSourceFactory = DefaultDataSource.Factory(context)
+
+    @OptIn(UnstableApi::class)
+    private val dataSourceFactory = DefaultDataSource.Factory(
+        context,
+        OkHttpDataSource.Factory(getOkHttpClient())
+            .setDefaultRequestProperties(
+                mapOf(
+                    "User-Agent" to "Mozilla/5.0",
+                    "Accept" to "*/*",
+                    "Accept-Encoding" to "identity" // avoids gzip/range issues
+                )
+            )
+    )
+
+    private val playbackListener = object : Player.Listener {
+        override fun onPlaybackStateChanged(state: Int) {
+            when (state) {
+                Player.STATE_READY -> {
+                    psv.totalDuration.postValue(player.duration)
+                }
+
+                Player.STATE_BUFFERING -> {
+                    psv.isLoading.postValue(true)
+                }
+
+                Player.STATE_ENDED,
+                Player.STATE_IDLE -> {
+                    psv.isLoading.postValue(false)
+                }
+            }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            Log.e(TAG, "Playback error", error)
+            psv.error.postValue(error.message ?: "Playback error")
+            psv.isLoading.postValue(false)
+            psv.isPaused.postValue(true)
+        }
+    }
+
+    init {
+        player.addListener(playbackListener)
+    }
 
     fun attach(playerView: PlayerView) {
         playerView.player = player
@@ -50,23 +96,10 @@ class PlayerManager(
         val audioSource = ProgressiveMediaSource.Factory(dataSourceFactory)
             .createMediaSource(MediaItem.fromUri(selectedAudio!!.url))
 
-        val mergedSource = MergingMediaSource(videoSource, audioSource)
+        val mergedSource = MergingMediaSource(true, videoSource, audioSource)
 
         player.setMediaSource(mergedSource)
         player.prepare()
-        player.addListener(object : Player.Listener {
-            override fun onPlaybackStateChanged(state: Int) {
-                if (state == Player.STATE_READY) {
-                    val durationMs = player.duration
-                    psv.totalDuration.postValue(durationMs)
-                }
-                if (state == Player.STATE_BUFFERING) {
-                    psv.isLoading.postValue(true)
-                }
-
-
-            }
-        })
         psv.startProgressUpdates(player)
         player.play()
         psv.isLoading.postValue(false)
@@ -102,6 +135,7 @@ class PlayerManager(
     }
 
     fun release() {
+        player.removeListener(playbackListener)
         player.release()
     }
 
@@ -120,11 +154,55 @@ class PlayerManager(
             .createMediaSource(MediaItem.fromUri(selected.url))
         val audio = ProgressiveMediaSource.Factory(dataSourceFactory)
             .createMediaSource(MediaItem.fromUri(audioSource.url))
-        val merged = MergingMediaSource(videoSource, audio)
+        val merged = MergingMediaSource(true, videoSource, audio)
         player.setMediaSource(merged)
         player.prepare()
         player.seekTo(resumePos)
         player.play()
         psv.currentResolution.postValue(resolution)
+    }
+
+    @OptIn(UnstableApi::class)
+    fun playSimpleUrl(url: String) {
+        psv.resetSimplePlaybackState()
+        player.stop()
+
+        val mediaItem = MediaItem.fromUri(url)
+        val source = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(mediaItem)
+
+
+        player.setMediaSource(source)
+        player.prepare()
+        psv.startProgressUpdates(player)
+        player.play()
+        psv.isPaused.postValue(false)
+
+    }
+
+    @OptIn(UnstableApi::class)
+    fun changePlaySimpleUrlResolution(url: String) {
+        val resumePosition = player.currentPosition
+        val wasPlaying = player.isPlaying
+
+        psv.resetSimplePlaybackState()
+        player.stop()
+
+        val mediaItem = MediaItem.fromUri(url)
+        val source = ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(mediaItem)
+
+        player.setMediaSource(source)
+        player.prepare()
+        psv.startProgressUpdates(player)
+        player.seekTo(resumePosition)
+
+        if (wasPlaying) {
+            player.play()
+            psv.isPaused.postValue(false)
+        } else {
+            player.pause()
+            psv.isPaused.postValue(true)
+        }
     }
 }

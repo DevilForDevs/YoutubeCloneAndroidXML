@@ -81,6 +81,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <meta-data
+            android:name="com.ranjan.expertclient.utils.MyAppGlideModule"
+            android:value="AppGlideModule" />
     </application>
 
 

@@ -4,8 +4,8 @@ import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.parsers.getContentArray
 import com.ranjan.expertclient.screens.browserscreen.safeGet
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.InitialDataModel
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
+import com.ranjan.expertclient.screens.playerscreen.models.InitialDataModel
+import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 import org.json.JSONArray
 import org.json.JSONObject
 

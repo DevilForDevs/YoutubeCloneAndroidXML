@@ -35,11 +35,6 @@ class SplashScreen : Fragment() {
         lifecycleScope.launch {
             delay(3000)
             findNavController().navigate(R.id.action_splashScreen_to_sitesChooserScreen)
-           /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                findNavController().navigate(R.id.action_splashScreen_to_browserScreen)
-            } else {
-                findNavController().navigate(R.id.action_splashScreen_to_bottomNavScreen)
-            }*/
         }
     }
 

@@ -3,6 +3,7 @@ package com.ranjan.expertclient.screens.moviessitesclient.moviesfeeds
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.ranjan.expertclient.databinding.MoviesFeedsScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.moviessitesclient.moviesfeeds.movieitem.MovieAdapter
@@ -42,6 +43,13 @@ class RecyclerHelper(
                 else -> "Movies"
             }
         }
-
+        binding.movieRecycler.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                val lm = rv.layoutManager as LinearLayoutManager
+                if (lm.findLastVisibleItemPosition() >= lm.itemCount - 2) {
+                    viewModel.loadMore(fragment.requireContext())
+                }
+            }
+        })
     }
 }

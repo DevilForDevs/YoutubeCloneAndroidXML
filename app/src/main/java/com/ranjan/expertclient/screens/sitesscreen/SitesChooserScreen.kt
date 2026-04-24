@@ -1,5 +1,6 @@
 package com.ranjan.expertclient.screens.sitesscreen
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -28,7 +29,7 @@ class SitesChooserScreen : Fragment() {
         binding = SitesChooserScreenBinding.inflate(inflater, container, false)
         return binding.root
     }
-    
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ViewCompat.setOnApplyWindowInsetsListener(view) { view, insets ->
@@ -36,7 +37,7 @@ class SitesChooserScreen : Fragment() {
             view.setPadding(0, statusBarHeight, 0, 0)
             insets
         }
-        val recyclerHelper= RecyclerHelper(
+        val recyclerHelper = RecyclerHelper(
             binding = binding,
             viewModel = viewModel,
             lifecycleOwner = viewLifecycleOwner,
@@ -45,12 +46,18 @@ class SitesChooserScreen : Fragment() {
         recyclerHelper.setup()
         viewModel.loadSites(requireContext())
     }
-    fun onItemClick(item: SiteItem){
+
+    fun onItemClick(item: SiteItem) {
         sharedViewModel.selectedSite.postValue(item)
-        if (item.url.contains("youtube")){
-            findNavController().navigate(R.id.action_sitesChooserScreen_to_browserScreen)
+
+        if (item.url.contains("youtube")) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                findNavController().navigate(R.id.action_sitesChooserScreen_to_browserScreen)
+            } else {
+                findNavController().navigate(R.id.action_sitesChooserScreen_to_bottomNavScreen)
+            }
         }
-        if (item.url.contains("mp4moviez")){
+        if (item.url.contains("mp4moviez")) {
             findNavController().navigate(R.id.action_sitesChooserScreen_to_moviesFeedsScreen)
 
         }

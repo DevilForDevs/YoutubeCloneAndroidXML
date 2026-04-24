@@ -1,21 +1,45 @@
 package com.ranjan.expertclient.moviesitesxtractors
 import android.content.Context
 import com.ranjan.expertclient.apiendpoints.HtmlExtractor
+import com.ranjan.expertclient.models.PraseResult
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.safeGet
-import okhttp3.OkHttpClient
+import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
+import com.ranjan.expertclient.utils.getOkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
+import java.net.URI
 
 class Mp4moviez {
     val schemaFolder = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/schemas/mp4moviez/"
-    private val client by lazy { OkHttpClient() }
+    private val client = getOkHttpClient()
+
+    fun getPage(url: String,context: Context): PraseResult{
+        val fileName="CategoryPage.json"
+        val feedsSchema=schemaFolder+fileName
+
+        val cacheFile = File(context.filesDir, "mp4moviez$fileName")
+        val jsonBody = if (cacheFile.exists()) {
+            cacheFile.readText()
+        } else {
+            val fetchedJson = fetchSitesJson(feedsSchema)
+            cacheFile.writeText(fetchedJson)
+            fetchedJson
+        }
+
+        val input = JSONObject().apply {
+            put("url", url)
+            put("schema", JSONObject(jsonBody))
+        }
+        val jsonResult = HtmlExtractor.fetch(input)
+        return parseResult(jsonResult)
+    }
 
 
-    fun getFeeds(url: String,context: Context):MutableList<VideoItem>{
+    fun getFeeds(url: String,context: Context): PraseResult{
         val fileName="Feeds.json"
         val feedsSchema=schemaFolder+fileName
 
@@ -47,7 +71,7 @@ class Mp4moviez {
             return response.body?.string() ?: "{}"
         }
     }
-    fun parseResult(jsonObject: JSONObject): MutableList<VideoItem>{
+    fun parseResult(jsonObject: JSONObject): PraseResult {
         val items = mutableListOf<VideoItem>()
         val movies = safeGet(
             jsonObject,
@@ -69,7 +93,7 @@ class Mp4moviez {
 
         for (i in 0 until movies.length()) {
             val movie = movies.optJSONObject(i) ?: continue
-            println(movie)
+
             val title = movie.optString("title")
             val detailUrl = movie.optString("detail_url")
             val format = movie.optString("format")
@@ -124,15 +148,97 @@ class Mp4moviez {
                 break
             }
         }
-        return items
+       return PraseResult(
+            items = items,
+            nextPageUrl = nextPageUrl
+       )
+
 
 
 
     }
 
+    fun buildHdMovieUrl(inputUrl: String): String? {
+        return try {
+            // Extract origin manually
+            val originMatch = Regex("^https?://[^/]+").find(inputUrl) ?: return null
+            val origin = originMatch.value
+            val path = inputUrl.removePrefix(origin)
 
+            // match /c3160/
+            val match = Regex("/c(\\d+)/").find(path) ?: return null
+            val id = match.groupValues[1]
 
+            // remove /c3160/
+            var newPath = path.replace(Regex("/c\\d+/"), "/")
 
+            // insert -hd-id before .html
+            newPath = newPath.replace(Regex("\\.html$"), "-hd-$id.html")
+
+            // encode safely (encodeURI equivalent — encode all except reserved/unreserved chars)
+            val safePath = URI(null, null, newPath, null).toASCIIString()
+
+            origin + safePath
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getVideoUrls(url: String,context: Context): MutableList<StreamItem> {
+        val murl=buildHdMovieUrl(url)
+        if (murl.isNullOrEmpty()) return mutableListOf()
+        val fileName="Details.json"
+        val feedsSchema=schemaFolder+fileName
+
+        val cacheFile = File(context.filesDir, "mp4moviez$fileName")
+        val jsonBody = if (cacheFile.exists()) {
+            cacheFile.readText()
+        } else {
+            val fetchedJson = fetchSitesJson(feedsSchema)
+            cacheFile.writeText(fetchedJson)
+            fetchedJson
+        }
+
+        val input = JSONObject().apply {
+            put("url", murl)
+            put("schema", JSONObject(jsonBody))
+        }
+        val jsonResult = HtmlExtractor.fetch(input)
+        val downloadLinks=safeGet(jsonResult,listOf(
+            "sections",
+            "download_links",
+            "items"
+        ), JSONArray()) as JSONArray
+        val varaints=mutableListOf<StreamItem>()
+
+        for (i in 0 until downloadLinks.length()) {
+            val item=downloadLinks.getJSONObject(i)
+            varaints.add(StreamItem(
+                itag = 0,
+                mimeType = "Mp4",
+                height = 0,
+                url = item.getString("url"),
+                bitrate = 80,
+                resolutionString = extractResolution(item.getString("url")),
+                size = extractBracketContent(item.getString("size"))
+            ))
+        }
+        return varaints
+
+        
+
+    }
+
+    fun extractResolution(url: String): String? {
+        val match = Regex("[?&]q=(\\d+)").find(url)
+        return match?.groupValues?.get(1)
+    }
+
+    fun extractBracketContent(str: String): String? {
+        val regex = Regex("\\[([^\\[\\]]+)]")
+        val match = regex.find(str)
+        return match?.groupValues?.get(1)?.trim()
+    }
 
 
 }

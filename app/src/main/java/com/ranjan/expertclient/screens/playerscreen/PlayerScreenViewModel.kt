@@ -13,7 +13,7 @@ import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerManager
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.screens.playerscreen.utils.YtHelpers
 import com.ranjan.expertclient.screens.playerscreen.utils.getFmtList
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
+import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -97,6 +97,24 @@ class PlayerScreenViewModel : ViewModel() {
 
     fun stopProgressUpdates() {
         progressJob?.cancel()
+    }
+
+    fun resetSimplePlaybackState() {
+        stopProgressUpdates()
+        isLoading.postValue(true)
+        isPaused.postValue(false)
+        error.postValue(null)
+        totalDuration.postValue(null)
+        durationProgress.postValue(null)
+        videoDetails.postValue(null)
+        currentResolution.postValue(null)
+        _isSeeking.postValue(false)
+        showControls.postValue(true)
+        suggestions.postValue(mutableListOf())
+        continuation = null
+        currentVideoId = null
+        current_playlistId.postValue(null)
+        adaptiveFormatsList = emptyList()
     }
 
     @OptIn(UnstableApi::class)

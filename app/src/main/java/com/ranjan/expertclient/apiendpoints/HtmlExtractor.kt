@@ -1,10 +1,13 @@
 package com.ranjan.expertclient.apiendpoints
 
+import android.os.Build
+import com.ranjan.expertclient.utils.getOkHttpClient
+import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import kotlin.collections.iterator
+import java.io.IOException
 
 object HtmlExtractor {
     fun fetch(input: JSONObject): JSONObject {
@@ -18,16 +21,39 @@ object HtmlExtractor {
         val headers = input.getJSONObject("schema").optJSONObject("headers") ?: JSONObject()
 
         var html: String
-        try {
-            val conn = Jsoup.connect(input.getString("url")).timeout(15_000)
-            headers.keys().forEach { k ->
-                conn.header(k, headers.getString(k))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val conn = Jsoup.connect(input.getString("url")).timeout(15_000)
+                headers.keys().forEach { k ->
+                    conn.header(k, headers.getString(k))
+                }
+                html = conn.get().html()
+            } catch (e: Exception) {
+                return JSONObject().put("error", e.message)
             }
-            html = conn.get().html()
-        } catch (e: Exception) {
-            return JSONObject().put("error", e.message)
+        } else {
+            html=getPageUsingUnsafeHttp(input.getString("url"))
         }
+
+
         return extract(html, input.getString("url"), input.getJSONObject("schema"))
+    }
+
+    fun getPageUsingUnsafeHttp(url: String): String {
+        try {
+            val request = Request.Builder()
+                .url(url)
+                .build()
+            val client= getOkHttpClient()
+
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw IOException("Network error")
+                return response.body?.string() ?: "{}"
+            }
+        }catch (e: Exception){
+            return e.message?:"error"
+        }
     }
 
     private fun extract(

@@ -4,19 +4,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.annotation.OptIn
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.screens.browserscreen.Store
+import com.ranjan.expertclient.screens.playerscreen.controllers.DownloadAndPlay
 import com.ranjan.expertclient.screens.playerscreen.controllers.FullscreenManager
 import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerManager
 import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerUIController
 import com.ranjan.expertclient.screens.playerscreen.controllers.ResolutionDialog
 import com.ranjan.expertclient.screens.playerscreen.controllers.SuggestionsController
+import com.ranjan.expertclient.screens.playerscreen.models.DownloadItem
+import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 
+@UnstableApi
 class PlayerScreen : Fragment() {
 
     private lateinit var binding: PlayerScreenBinding
@@ -24,6 +31,7 @@ class PlayerScreen : Fragment() {
     private val viewModel by activityViewModels<Store>()
     private val psv by activityViewModels<PlayerScreenViewModel>()
     private lateinit var playerManager: PlayerManager
+    private val moviesViewModel by activityViewModels<MoviesViewModel>()
 
 
     override fun onCreateView(
@@ -35,14 +43,21 @@ class PlayerScreen : Fragment() {
         return binding.root
     }
 
+    @OptIn(UnstableApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val downloadModal= DownloadAndPlay(
+            fragment = this,
+            onActionClick = {
+                moviesViewModel.action(it,this.requireContext())
+            },
+            viewModel = moviesViewModel,
+            play = ::play
+        )
 
         playerManager = PlayerManager(
             context = requireContext(),
-            psv = psv,
-            sharedViewModel = sharedViewModel,
-            viewModel = viewModel
+            psv = psv
         )
 
         val uiController = PlayerUIController(
@@ -81,33 +96,60 @@ class PlayerScreen : Fragment() {
 
         playerManager.attach(binding.playerView)
 
-        //load inital video
-        psv.loadVideo(
-            videoItem = sharedViewModel.selectedVideo.value!!,
-            visitorId = viewModel.visitorId?:"",
-            playerManager
-        )
+        sharedViewModel.selectedVideo.observe(viewLifecycleOwner){selectedVideo->
+            if (selectedVideo.yt){
+                psv.loadVideo(
+                    videoItem = selectedVideo,
+                    visitorId = viewModel.visitorId?:"",
+                    playerManager
+                )
+            }else{
+                moviesViewModel.loadVideo(selectedVideo,this.requireContext(), showDialog = {
+                    downloadModal.show()
+                })
+
+            }
+
+        }
+
+        psv.error.observe(viewLifecycleOwner){error->
+            println(error)
+
+        }
+
 
         uiController.setup()
         fullscreenManager.setup()
         suggestionsController.setup()
 
         binding.playerUI.imageView17.setOnClickListener {
-            resolutionDialog.show(
-                psv.getResolutionList(),
-                psv.currentResolution.value
-            ) {
-                playerManager.changeResolution(it)
+            if (sharedViewModel.selectedVideo.value?.yt==true){
+                resolutionDialog.show(
+                    psv.getResolutionList(),
+                    psv.currentResolution.value
+                ) {
+                    playerManager.changeResolution(it)
+                }
+            }else{
+                if (downloadModal.isShowing()){
+                    downloadModal.dismiss()
+                }else{
+                    downloadModal.show()
+                }
+
             }
+
         }
 
     }
 
+    @OptIn(UnstableApi::class)
     override fun onPause() {
         super.onPause()
         playerManager.pause()
     }
 
+    @OptIn(UnstableApi::class)
     override fun onDestroyView() {
         super.onDestroyView()
         playerManager.release()
@@ -116,6 +158,16 @@ class PlayerScreen : Fragment() {
         val action = PlayerScreenDirections.actionPlayerScreenToChannelScreen(id)
         findNavController().navigate(action)
     }
+    fun play(item: DownloadItem) {
+        if (item.isFinished) {
+            playerManager.playSimpleUrl(item.fileName)
+        } else {
+            playerManager.playSimpleUrl(item.fileUrl)
+        }
+    }
+
+
+
 
 }
 

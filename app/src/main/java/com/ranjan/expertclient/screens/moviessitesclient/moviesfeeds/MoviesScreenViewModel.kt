@@ -20,6 +20,9 @@ class MoviesScreenViewModel : ViewModel() {
 
     private val _state = MutableLiveData<VideoNavState>()
     val state: LiveData<VideoNavState> = _state
+    var nextPageUrl: String?=null
+    val error = MutableLiveData<String?>()
+
 
     // -------------------------
     // Load root (first screen)
@@ -31,20 +34,40 @@ class MoviesScreenViewModel : ViewModel() {
         )
 
         viewModelScope.launch(Dispatchers.IO) {
-            val items = sitesManager.getFeeds(siteItem, context)
+            try {
+                val items = sitesManager.getFeeds(siteItem, context)
+                nextPageUrl=items.nextPageUrl
 
-            _state.postValue(
-                VideoNavState(
-                    currentPage = VideoPage(
-                        items = items,
-                        title = "Home",
-                        sourceId = siteItem.toString()
-                    ),
-                    history = emptyList(),
-                    isLoading = false
+                _state.postValue(
+                    VideoNavState(
+                        currentPage = VideoPage(
+                            items = items.items,
+                            title = "Home",
+                            sourceId = siteItem.toString()
+                        ),
+                        history = emptyList(),
+                        isLoading = false
+                    )
                 )
-            )
+            }catch (e: Exception){
+                error.postValue(e.message)
+            }
         }
+    }
+
+    fun loadRootIfNeeded(siteItem: SiteItem, context: Context) {
+        val currentState = _state.value
+        val sourceId = siteItem.toString()
+
+        // selectedSite LiveData re-emits on view recreation; avoid reloading same site state.
+        if (currentState != null &&
+            currentState.currentPage.sourceId == sourceId &&
+            (currentState.currentPage.items.isNotEmpty() || currentState.history.isNotEmpty())
+        ) {
+            return
+        }
+
+        loadRoot(siteItem, context)
     }
 
     // -------------------------
@@ -65,20 +88,25 @@ class MoviesScreenViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
 
 
-            val items = sitesManager.getPage(item.pageUrl?:"", context)
-            val newPage = VideoPage(
-                items = items,
-                title = item.title,
-                sourceId = item.playlistId ?: item.pageUrl
-            )
-
-            _state.postValue(
-                VideoNavState(
-                    currentPage = newPage,
-                    history = newHistory,
-                    isLoading = false
+            try {
+                val items = sitesManager.getPage(item.pageUrl?:"", context)
+                val newPage = VideoPage(
+                    items = items.items,
+                    title = item.title,
+                    sourceId = item.playlistId ?: item.pageUrl
                 )
-            )
+                nextPageUrl=items.nextPageUrl
+
+                _state.postValue(
+                    VideoNavState(
+                        currentPage = newPage,
+                        history = newHistory,
+                        isLoading = false
+                    )
+                )
+            }catch (e: Exception){
+                error.postValue(e.message)
+            }
         }
     }
 
@@ -98,6 +126,40 @@ class MoviesScreenViewModel : ViewModel() {
         )
 
         return true
+    }
+    fun loadMore(context: Context) {
+        val currentState = _state.value ?: return
+        if (currentState.isLoading) return
+
+        val url = nextPageUrl
+        if (url.isNullOrBlank()) return
+
+        _state.value = currentState.copy(isLoading = true)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                sitesManager.getPage(url, context)
+            }.onSuccess { items ->
+                nextPageUrl = items.nextPageUrl
+
+                val updatedState = _state.value ?: currentState
+                val mergedPage = updatedState.currentPage.copy(
+                    items = updatedState.currentPage.items + items.items
+                )
+
+                _state.postValue(
+                    updatedState.copy(
+                        currentPage = mergedPage,
+                        isLoading = false
+                    )
+                )
+            }.onFailure {
+                _state.postValue((_state.value ?: currentState).copy(isLoading = false))
+                error.postValue(it.message)
+
+            }
+        }
+
     }
 
 }

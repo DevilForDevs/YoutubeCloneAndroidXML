@@ -9,7 +9,7 @@ import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.videoscolumn.VideosColumnAdapter
 import com.ranjan.expertclient.screens.playerscreen.PlayerScreenViewModel
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetailsAdapter
+import com.ranjan.expertclient.screens.playerscreen.widgets.videodetails.VideoDetailsAdapter
 import com.ranjan.expertclient.screens.playerscreen.widgets.videodetails.VideoDetailsHolder
 
 class SuggestionsController(

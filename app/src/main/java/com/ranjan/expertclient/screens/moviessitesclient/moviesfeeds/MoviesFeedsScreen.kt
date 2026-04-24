@@ -4,10 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
+import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.MoviesFeedsScreenBinding
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
@@ -37,8 +40,6 @@ class MoviesFeedsScreen : Fragment() {
             }
         })
 
-
-
         val helper= RecyclerHelper(
             binding = binding,
             lifecycleOwner = viewLifecycleOwner,
@@ -51,6 +52,9 @@ class MoviesFeedsScreen : Fragment() {
         sharedViewModel.selectedSite.observe(viewLifecycleOwner){item ->
             viewModel.loadRoot(item,this.requireContext())
         }
+        viewModel.error.observe(viewLifecycleOwner){error->
+            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+        }
 
     }
     fun onMovieItemClick(item: VideoItem){
@@ -58,6 +62,8 @@ class MoviesFeedsScreen : Fragment() {
            viewModel.onItemClick(item,this.requireContext())
        }else{
            sharedViewModel.selectedVideo.postValue(item)
+           findNavController().navigate(R.id.action_moviesFeedsScreen_to_playerScreen)
+
        }
     }
 

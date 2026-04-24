@@ -16,7 +16,6 @@ class MovieItemHolder(
             .into(binding.imageView32)
         binding.textView43.text = item.title
         binding.root.setOnClickListener {
-            println(item)
             onItemClick(item)
         }
     }

@@ -6,17 +6,50 @@
     android:paddingBottom="24dp">
 
     <TextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="16dp"
         android:text="Select Quality"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:padding="16dp"/>
+        android:textStyle="bold" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="#22000000"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/freeSpaceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Free space: --"
+            android:textSize="14sp"
+            android:textColor="#757575"/>
+
+        <TextView
+            android:id="@+id/goToDownloads"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GO TO DOWNLOADS"
+            android:textSize="12sp"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"/>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/resolutionRecycler"

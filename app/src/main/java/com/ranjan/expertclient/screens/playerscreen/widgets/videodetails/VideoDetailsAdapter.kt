@@ -1,11 +1,9 @@
-package com.ranjan.expertclient.screens.playerscreen.widgets.models
+package com.ranjan.expertclient.screens.playerscreen.widgets.videodetails
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.ranjan.expertclient.databinding.PlayerScreenVideoDetailsBinding
-import com.ranjan.expertclient.screens.bottomnavscreens.homescreen.widgets.categoryrow.CategoryRowHolder
-import com.ranjan.expertclient.screens.playerscreen.widgets.videodetails.VideoDetailsHolder
 
 class VideoDetailsAdapter(
     private val channelClick:(id:String)-> Unit

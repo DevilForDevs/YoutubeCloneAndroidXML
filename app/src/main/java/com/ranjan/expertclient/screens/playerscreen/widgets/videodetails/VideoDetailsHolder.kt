@@ -3,7 +3,7 @@ package com.ranjan.expertclient.screens.playerscreen.widgets.videodetails
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ranjan.expertclient.databinding.PlayerScreenVideoDetailsBinding
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.VideoDetails
+import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 
 class VideoDetailsHolder(
     private val binding: PlayerScreenVideoDetailsBinding,

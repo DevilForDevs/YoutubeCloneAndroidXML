@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.playerscreen.widgets.models
+package com.ranjan.expertclient.screens.playerscreen.models
 
 data class VideoDetails(
     val title: String,

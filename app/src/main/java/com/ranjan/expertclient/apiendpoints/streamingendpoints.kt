@@ -1,7 +1,7 @@
 package com.ranjan.expertclient.apiendpoints
 
-import com.ranjan.videoplayer.utils.RandomStringGenerator.generateContentPlaybackNonce
-import com.ranjan.videoplayer.utils.RandomStringGenerator.generateTParameter
+import com.ranjan.expertclient.apiendpoints.RandomStringGenerator.generateContentPlaybackNonce
+import com.ranjan.expertclient.apiendpoints.RandomStringGenerator.generateTParameter
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request

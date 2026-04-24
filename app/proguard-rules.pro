@@ -26,6 +26,15 @@
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Jsoup rules
+-keep class org.jsoup.** { *; }
+-dontwarn org.jsoup.**
+
+# Glide rules
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public class * extends com.bumptech.glide.module.LibraryGlideModule
+-keep class com.bumptech.glide.GeneratedAppGlideModuleImpl
+-keep class com.bumptech.glide.integration.okhttp3.OkHttpGlideModule
+-keep class com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule
+-keepnames class com.bumptech.glide.features.glide.GlideApp
+-dontwarn com.bumptech.glide.integration.okhttp3.**

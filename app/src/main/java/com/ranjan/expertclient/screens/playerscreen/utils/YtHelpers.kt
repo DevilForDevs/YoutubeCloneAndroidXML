@@ -1,7 +1,7 @@
 package com.ranjan.expertclient.screens.playerscreen.utils
 
 import com.ranjan.expertclient.models.VideoItem
-import com.ranjan.expertclient.screens.playerscreen.widgets.models.InitialDataModel
+import com.ranjan.expertclient.screens.playerscreen.models.InitialDataModel
 import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale

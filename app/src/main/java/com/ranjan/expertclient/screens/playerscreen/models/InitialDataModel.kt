@@ -1,4 +1,4 @@
-package com.ranjan.expertclient.screens.playerscreen.widgets.models
+package com.ranjan.expertclient.screens.playerscreen.models
 
 import com.ranjan.expertclient.models.VideoItem
 
