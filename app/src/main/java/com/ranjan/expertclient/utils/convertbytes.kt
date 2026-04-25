@@ -3,6 +3,7 @@ package com.ranjan.expertclient.utils
 import android.os.Environment
 import android.os.StatFs
 import java.io.File
+import kotlin.math.roundToInt
 
 fun convertBytes(sizeInBytes: Long): String {
     val KB = 1024L
@@ -38,3 +39,17 @@ fun getFreeDiskSpace(path: File = Environment.getDataDirectory()): Long {
     val availableBlocks = stat.availableBlocksLong
     return availableBlocks * blockSize
 }
+
+fun convertSpeed(bytesPerSec: Long): String {
+    val kilobyte = 1024.0
+    val megabyte = kilobyte * 1024
+    val gigabyte = megabyte * 1024
+
+    return when {
+        bytesPerSec >= gigabyte -> "${(bytesPerSec / gigabyte).roundToInt()} GB/s"
+        bytesPerSec >= megabyte -> "${(bytesPerSec / megabyte).roundToInt()} MB/s"
+        bytesPerSec >= kilobyte -> "${(bytesPerSec / kilobyte).roundToInt()} KB/s"
+        else -> "$bytesPerSec B/s"
+    }
+}
+

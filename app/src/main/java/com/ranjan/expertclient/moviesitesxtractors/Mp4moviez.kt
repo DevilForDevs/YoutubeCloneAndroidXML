@@ -109,7 +109,8 @@ class Mp4moviez {
                         views = format.ifBlank { null },
                         publishedOn = category.ifBlank { null },
                         yt = false,
-                        category = false
+                        category = false,
+                        siteName = "Mp4moviez"
                     )
                 )
             }
@@ -130,7 +131,8 @@ class Mp4moviez {
                         pageUrl = url,
                         publishedOn = iconAlt.ifBlank { null },
                         yt = false,
-                        category = true
+                        category = true,
+                        siteName = "Mp4moviez"
 
                     )
                 )
@@ -184,11 +186,17 @@ class Mp4moviez {
         }
     }
 
-    fun getVideoUrls(url: String,context: Context): MutableList<StreamItem> {
-        val murl=buildHdMovieUrl(url)
+    fun getBaseOrigin(url: String): String {
+        val uri = java.net.URI(url)
+        return "${uri.scheme}://${uri.host}"
+    }
+
+    fun getVideoUrls(url: String, context: Context): MutableList<StreamItem> {
+        val murl = buildHdMovieUrl(url)
         if (murl.isNullOrEmpty()) return mutableListOf()
-        val fileName="Details.json"
-        val feedsSchema=schemaFolder+fileName
+
+        val fileName = "Details.json"
+        val feedsSchema = schemaFolder + fileName
 
         val cacheFile = File(context.filesDir, "mp4moviez$fileName")
         val jsonBody = if (cacheFile.exists()) {
@@ -203,30 +211,46 @@ class Mp4moviez {
             put("url", murl)
             put("schema", JSONObject(jsonBody))
         }
+
         val jsonResult = HtmlExtractor.fetch(input)
-        val downloadLinks=safeGet(jsonResult,listOf(
-            "sections",
-            "download_links",
-            "items"
-        ), JSONArray()) as JSONArray
-        val varaints=mutableListOf<StreamItem>()
+
+        val downloadLinks = safeGet(
+            jsonResult,
+            listOf("sections", "download_links", "items"),
+            JSONArray()
+        ) as JSONArray
+
+        val variants = mutableListOf<StreamItem>()
 
         for (i in 0 until downloadLinks.length()) {
-            val item=downloadLinks.getJSONObject(i)
-            varaints.add(StreamItem(
-                itag = 0,
-                mimeType = "Mp4",
-                height = 0,
-                url = item.getString("url"),
-                bitrate = 80,
-                resolutionString = extractResolution(item.getString("url")),
-                size = extractBracketContent(item.getString("size"))
-            ))
+            val item = downloadLinks.getJSONObject(i)
+            val videoUrl = item.getString("url")
+
+            val origin = getBaseOrigin(videoUrl)
+
+            variants.add(
+                StreamItem(
+                    itag = 0,
+                    mimeType = "Mp4",
+                    height = 0,
+                    url = videoUrl,
+                    bitrate = 80,
+                    resolutionString = extractResolution(videoUrl),
+                    size = extractBracketContent(item.getString("size")),
+
+                    // ✅ Dynamic headers
+                    headers = mapOf(
+                        "Accept" to "*/*",
+                        "Accept-Encoding" to "identity",
+                        "Connection" to "keep-alive",
+                        "Referer" to "$origin/",   // important
+                        "Origin" to origin           // sometimes required
+                    )
+                )
+            )
         }
-        return varaints
 
-        
-
+        return variants
     }
 
     fun extractResolution(url: String): String? {

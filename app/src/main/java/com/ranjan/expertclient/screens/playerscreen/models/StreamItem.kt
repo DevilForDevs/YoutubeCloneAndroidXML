@@ -9,5 +9,6 @@ data class StreamItem(
     val bitrate: Int,
     var isSelected: Boolean = false,
     val resolutionString: String?=null,
-    val size: String?=null
+    val size: String?=null,
+    val headers: Map<String, String> = emptyMap()
 )

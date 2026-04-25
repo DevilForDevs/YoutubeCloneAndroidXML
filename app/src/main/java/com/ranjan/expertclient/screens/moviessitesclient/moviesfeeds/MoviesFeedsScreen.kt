@@ -21,6 +21,9 @@ class MoviesFeedsScreen : Fragment() {
     private val viewModel by activityViewModels<MoviesScreenViewModel>()
     private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
 
+    private var selectedSiteEmissionCount = 0
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,14 +52,21 @@ class MoviesFeedsScreen : Fragment() {
             sharedViewModel
         )
         helper.setup()
-        sharedViewModel.selectedSite.observe(viewLifecycleOwner){item ->
-            viewModel.loadRoot(item,this.requireContext())
+        viewModel.state.observe(viewLifecycleOwner) { state ->
+        }
+        sharedViewModel.selectedSite.observe(viewLifecycleOwner){ item ->
+            selectedSiteEmissionCount += 1
+            viewModel.loadRootIfNeeded(item, requireContext())
         }
         viewModel.error.observe(viewLifecycleOwner){error->
-            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            if (!error.isNullOrBlank()) {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            }
         }
 
     }
+
+
     fun onMovieItemClick(item: VideoItem){
        if (item.category){
            viewModel.onItemClick(item,this.requireContext())

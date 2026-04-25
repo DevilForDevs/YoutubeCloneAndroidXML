@@ -12,6 +12,7 @@ import com.ranjan.expertclient.screens.playerscreen.widgets.download.DownloadsAd
 import com.ranjan.expertclient.screens.playerscreen.models.DownloadItem
 import com.ranjan.expertclient.utils.convertBytes
 import com.ranjan.expertclient.utils.getFreeDiskSpace
+import kotlin.collections.toList
 
 class DownloadAndPlay(
     private val fragment: Fragment,
@@ -25,7 +26,6 @@ class DownloadAndPlay(
     init {
         // Observe once for the lifetime of the Fragment's view
         viewModel.downloads.observe(fragment.viewLifecycleOwner) { items ->
-            println(items)
             adapter.submitList(items?.toList())
             // If dialog is showing, the adapter will update automatically
         }
@@ -33,10 +33,10 @@ class DownloadAndPlay(
 
     fun show() {
         if (dialog?.isShowing == true) return
+        val context = fragment.context ?: return
         val freeSpace = getFreeDiskSpace(Environment.getDataDirectory())
 
 
-        val context = fragment.requireContext()
         val binding = DialogResolutionsBinding.inflate(fragment.layoutInflater)
         
         binding.resolutionRecycler.apply {

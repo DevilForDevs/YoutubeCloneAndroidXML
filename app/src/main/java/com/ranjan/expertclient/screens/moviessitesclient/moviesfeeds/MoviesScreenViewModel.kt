@@ -22,23 +22,40 @@ class MoviesScreenViewModel : ViewModel() {
     val state: LiveData<VideoNavState> = _state
     var nextPageUrl: String?=null
     val error = MutableLiveData<String?>()
+    private var stateVersion = 0
+
+
+
+    override fun onCleared() {
+        super.onCleared()
+    }
+
+    private fun setState(value: VideoNavState) {
+        stateVersion += 1
+        _state.value = value
+    }
+
+    private fun postState(value: VideoNavState) {
+        stateVersion += 1
+        _state.postValue(value)
+    }
 
 
     // -------------------------
     // Load root (first screen)
     // -------------------------
     fun loadRoot(siteItem: SiteItem, context: Context) {
-        _state.value = VideoNavState(
+        setState(VideoNavState(
             currentPage = VideoPage(emptyList(), "Loading"),
             isLoading = true
-        )
+        ))
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val items = sitesManager.getFeeds(siteItem, context)
                 nextPageUrl=items.nextPageUrl
 
-                _state.postValue(
+                postState(
                     VideoNavState(
                         currentPage = VideoPage(
                             items = items.items,
@@ -58,12 +75,15 @@ class MoviesScreenViewModel : ViewModel() {
     fun loadRootIfNeeded(siteItem: SiteItem, context: Context) {
         val currentState = _state.value
         val sourceId = siteItem.toString()
+        val sameSiteInCurrent = currentState?.currentPage?.sourceId == sourceId
+        val sameSiteInHistory = currentState?.history?.any { it.sourceId == sourceId } == true
+        val belongsToSelectedSite = sameSiteInCurrent || sameSiteInHistory
+        val hasUsableState = currentState?.currentPage?.items?.isNotEmpty() == true ||
+            currentState?.history?.isNotEmpty() == true ||
+            currentState?.isLoading == true
 
         // selectedSite LiveData re-emits on view recreation; avoid reloading same site state.
-        if (currentState != null &&
-            currentState.currentPage.sourceId == sourceId &&
-            (currentState.currentPage.items.isNotEmpty() || currentState.history.isNotEmpty())
-        ) {
+        if (currentState != null && belongsToSelectedSite && hasUsableState) {
             return
         }
 
@@ -76,14 +96,18 @@ class MoviesScreenViewModel : ViewModel() {
     fun onItemClick(item: VideoItem, context: Context) {
 
         // Only navigate if it's a category
-        if (!item.category) return
+        if (!item.category) {
+            return
+        }
 
-        val currentState = _state.value ?: return
+        val currentState = _state.value ?: run {
+            return
+        }
 
         // push current page into history
         val newHistory = currentState.history + currentState.currentPage
 
-        _state.value = currentState.copy(isLoading = true)
+        setState(currentState.copy(isLoading = true))
 
         viewModelScope.launch(Dispatchers.IO) {
 
@@ -97,7 +121,7 @@ class MoviesScreenViewModel : ViewModel() {
                 )
                 nextPageUrl=items.nextPageUrl
 
-                _state.postValue(
+                postState(
                     VideoNavState(
                         currentPage = newPage,
                         history = newHistory,
@@ -114,27 +138,37 @@ class MoviesScreenViewModel : ViewModel() {
     // Back navigation
     // -------------------------
     fun goBack() : Boolean{
-        val currentState = _state.value ?: return false
-        if (currentState.history.isEmpty()) return false
+        val currentState = _state.value ?: run {
+            return false
+        }
+        if (currentState.history.isEmpty()) {
+            return false
+        }
 
         val previousPage = currentState.history.last()
         val newHistory = currentState.history.dropLast(1)
 
-        _state.value = currentState.copy(
+        setState(currentState.copy(
             currentPage = previousPage,
             history = newHistory
-        )
+        ))
 
         return true
     }
     fun loadMore(context: Context) {
-        val currentState = _state.value ?: return
-        if (currentState.isLoading) return
+        val currentState = _state.value ?: run {
+            return
+        }
+        if (currentState.isLoading) {
+            return
+        }
 
         val url = nextPageUrl
-        if (url.isNullOrBlank()) return
+        if (url.isNullOrBlank()) {
+            return
+        }
 
-        _state.value = currentState.copy(isLoading = true)
+        setState(currentState.copy(isLoading = true))
 
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
@@ -147,14 +181,14 @@ class MoviesScreenViewModel : ViewModel() {
                     items = updatedState.currentPage.items + items.items
                 )
 
-                _state.postValue(
+                postState(
                     updatedState.copy(
                         currentPage = mergedPage,
                         isLoading = false
                     )
                 )
             }.onFailure {
-                _state.postValue((_state.value ?: currentState).copy(isLoading = false))
+                postState((_state.value ?: currentState).copy(isLoading = false))
                 error.postValue(it.message)
 
             }

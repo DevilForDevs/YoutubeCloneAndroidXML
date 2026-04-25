@@ -49,7 +49,7 @@ class PlayerScreen : Fragment() {
         val downloadModal= DownloadAndPlay(
             fragment = this,
             onActionClick = {
-                moviesViewModel.action(it,this.requireContext())
+                moviesViewModel.action(it)
             },
             viewModel = moviesViewModel,
             play = ::play
@@ -113,8 +113,9 @@ class PlayerScreen : Fragment() {
         }
 
         psv.error.observe(viewLifecycleOwner){error->
-            println(error)
-
+            if (!error.isNullOrBlank()) {
+                Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            }
         }
 
 

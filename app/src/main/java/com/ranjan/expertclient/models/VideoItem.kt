@@ -15,5 +15,6 @@ data class VideoItem(
     val yt: Boolean=true,
     val pageUrl: String?=null,
     val category: Boolean=true,
+    val siteName: String?=null,
 
 )

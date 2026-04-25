@@ -2,14 +2,17 @@ package com.ranjan.expertclient.screens.playerscreen.models
 
 data class DownloadItem(
     val resolution: String,
-    val downloaded: Long,
-    val total: Long,
+    val dbyBydt: String,
     val speed: String,
     val isDownloading: Boolean=true,
     val fileName: String,
     val fileUrl: String,
     val isPlaying: Boolean=false,
     val isFinished: Boolean=false,
-    val status: String
+    val status: String,
+    val progressPercent: Int=0,
+    val headers: Map<String, String> = emptyMap()
+
+
 
 )
