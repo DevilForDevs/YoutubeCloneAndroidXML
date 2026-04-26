@@ -11,8 +11,8 @@ data class DownloadItem(
     val isFinished: Boolean=false,
     val status: String,
     val progressPercent: Int=0,
-    val headers: Map<String, String> = emptyMap()
-
-
+    val headers: Map<String, String> = emptyMap(),
+    val thumbnailFile: String,
+    val thumbnailUrl: String?=null
 
 )

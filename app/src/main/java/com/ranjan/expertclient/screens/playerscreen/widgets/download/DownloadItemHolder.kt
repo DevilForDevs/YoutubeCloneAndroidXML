@@ -13,30 +13,32 @@ class DownloadItemHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(item: DownloadItem, action: (item: DownloadItem) -> Unit, play: (item: DownloadItem) -> Unit) {
+        println(item)
         binding.resolutionText.text = item.resolution
         binding.sizeText.text = item.dbyBydt
 
         binding.downloadProgress.progress = item.progressPercent
         binding.percentText.text = "${item.progressPercent}%"
 
-        if (item.isDownloading) {
-            binding.actionButton.setImageResource(android.R.drawable.ic_media_pause)
-        } else {
-            binding.actionButton.setImageResource(android.R.drawable.ic_media_play)
-        }
-
-        binding.downloadStatus.text=item.status
+        binding.downloadStatus.text = item.status
 
         if (item.isFinished) {
-            binding.actionButton.setImageResource(android.R.drawable.ic_media_play) // Or a different icon for local play
+            binding.actionButton.visibility = View.GONE
             binding.downloadProgress.progress = 100
             binding.percentText.text = "100%"
+        } else {
+            binding.actionButton.visibility = View.VISIBLE
+            if (item.isDownloading) {
+                binding.actionButton.setImageResource(android.R.drawable.ic_media_pause)
+            } else {
+                binding.actionButton.setImageResource(android.R.drawable.ic_media_play)
+            }
         }
-        
-        binding.downloadStatus.text = item.status
-        
+
         binding.actionButton.setOnClickListener {
-            action(item)
+            if (!item.isFinished) {
+                action(item)
+            }
         }
         binding.root.setOnClickListener {
             play(item)

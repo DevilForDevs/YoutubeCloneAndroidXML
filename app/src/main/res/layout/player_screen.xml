@@ -23,6 +23,20 @@
             app:use_controller="false"
             app:resize_mode="fill"/>
 
+        <View
+            android:id="@+id/leftTapRegion"
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?attr/selectableItemBackground" />
+
+        <View
+            android:id="@+id/rightTapRegion"
+            android:layout_width="120dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackground" />
+
         <include
             android:id="@+id/playerUI"
             layout="@layout/player_layout"

@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import java.io.File
 import java.io.FileOutputStream
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -168,6 +169,26 @@ suspend fun resumableInOneGoDownloader(
             } catch (_: Exception) {}
             onError(e.message ?: "Unknown error")
             return
+        }
+    }
+}
+
+suspend fun downloadThumbnail(url: String, file: File) {
+    withContext(Dispatchers.IO) {
+        try {
+            val client = getOkHttpClient()
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.body?.byteStream()?.use { input ->
+                        file.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("Thumbnail download error: ${e.message}")
         }
     }
 }

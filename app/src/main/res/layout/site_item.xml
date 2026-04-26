@@ -14,18 +14,67 @@
     app:cardElevation="3dp"
     app:strokeWidth="0dp">
 
-    <TextView
-        android:id="@+id/textView41"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="16dp"
-        android:text="TextView"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        android:textColor="#1A1A2E"
-        android:fontFamily="sans-serif-medium"
-        android:maxLines="1"
-        android:ellipsize="end" />
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Site Name -->
+        <TextView
+            android:id="@+id/textView41"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="1"
+            android:paddingBottom="12dp"
+            android:text="TextView"
+            android:textColor="#1A1A2E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:background="#E8E8E8" />
+
+        <!-- Action Items Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:spacing="8dp">
+
+            <TextView
+                android:id="@+id/domain"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="12dp"
+                android:text="Update Domain"
+                android:textColor="#2563EB"
+                android:textSize="12sp" />
+
+
+            <!-- Update Schema -->
+            <TextView
+                android:id="@+id/schema"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="12dp"
+                android:text="Update Schema"
+                android:textColor="#7C3AED"
+                android:textSize="12sp" />
+
+            <!-- Update Domain -->
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

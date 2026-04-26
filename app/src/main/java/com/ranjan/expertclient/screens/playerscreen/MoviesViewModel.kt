@@ -1,6 +1,7 @@
 package com.ranjan.expertclient.screens.playerscreen
 
 import android.content.Context
+import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,14 +9,18 @@ import androidx.lifecycle.viewModelScope
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.moviesitesxtractors.SitesManager
 import com.ranjan.expertclient.screens.playerscreen.models.DownloadItem
+import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 import com.ranjan.expertclient.utils.convertBytes
+import com.ranjan.expertclient.utils.downloadThumbnail
 import com.ranjan.expertclient.utils.fetchUrlInfo
+import com.ranjan.expertclient.utils.getOkHttpClient
 import com.ranjan.expertclient.utils.resumableInOneGoDownloader
 import com.ranjan.expertclient.utils.txt2filename
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.atomic.AtomicLong
@@ -36,24 +41,77 @@ class MoviesViewModel : ViewModel() {
     private var currentVideoUrls = listOf<String>()
 
     fun buildUserAgent(): String {
-        val androidVersion = android.os.Build.VERSION.RELEASE
-        val device = android.os.Build.MODEL
-        val brand = android.os.Build.BRAND
-        val buildId = android.os.Build.ID
+        val androidVersion = Build.VERSION.RELEASE
+        val device = Build.MODEL
+        val brand = Build.BRAND
+        val buildId = Build.ID
 
         return "Mozilla/5.0 (Linux; Android $androidVersion; $device Build/$buildId; wv) " +
                 "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 " +
                 "Chrome/120.0.0.0 Mobile Safari/537.36"
     }
 
-    fun loadVideo(item: VideoItem, context: Context, showDialog: () -> Unit) {
+    fun setupVideoInfo(psv: PlayerScreenViewModel, item: VideoItem) {
+       psv.videoDetails.postValue(VideoDetails(
+           title = item.title,
+           likes = "Likes",
+           dislikes = "",
+           channelBigThumb = "",
+           commentsCount = "",
+           localLizedViewsandUploadedAgo = "",
+           subscriberCount = "",
+           firstHasTag ="",
+           hashTags = "Playing Offline",
+           channelName =item.siteName,
+           channelUrl = ""
+       ))
+
+
+
+    }
+
+    fun loadVideo(item: VideoItem, context: Context, showDialog: () -> Unit,psv: PlayerScreenViewModel) {
         val pageUrl = item.pageUrl ?: return
+        setupVideoInfo(psv, item)
+
+        // ✅ Check if it's a local file (Offline mode)
+        val isLocalFile = File(pageUrl).exists() && (pageUrl.endsWith(".mp4") || pageUrl.endsWith(".mkv"))
+        if (isLocalFile) {
+            val file = File(pageUrl)
+            
+            // Access last 10 characters for resolution as requested
+            val fileName = file.nameWithoutExtension
+            val extractedResolution = if (fileName.length >= 10) fileName.takeLast(10) else fileName
+
+            val di = listOf(
+                DownloadItem(
+                    resolution = extractedResolution,
+                    dbyBydt = convertBytes(file.length()),
+                    speed = "0 KB/s",
+                    isDownloading = false,
+                    fileName = pageUrl,
+                    fileUrl = pageUrl,
+                    isPlaying = false,
+                    isFinished = true,
+                    status = "Finished",
+                    headers = emptyMap(),
+                    thumbnailFile = item.thumbnail ?: "",
+                    thumbnailUrl = null
+                )
+            )
+            _downloads.postValue(di)
+            viewModelScope.launch(Dispatchers.Main) {
+                showDialog()
+            }
+            return
+        }
+
         loadJob?.cancel()
         
         currentVideoUrls = emptyList()
         val requestId = latestRequestId.incrementAndGet()
         loadJob = viewModelScope.launch(Dispatchers.IO) {
-            val urls = siteManager.getVideoUrls(pageUrl, context)
+            val urls = siteManager.getVideoUrls(pageUrl, context,item.siteName?:"")
             if (requestId != latestRequestId.get()) return@launch
             
             val di=mutableListOf<DownloadItem>()
@@ -78,9 +136,6 @@ class MoviesViewModel : ViewModel() {
                 val isValid = streamItem.url.contains("jio=", ignoreCase = true)
                 if (isValid) {
                     val videoFile = File(videosFolder, "${sanitizedTitle}(${streamItem.resolutionString}).mp4")
-                    if (videoFile.exists()){
-                        println("Video already exists: ${videoFile.length()}")
-                    }
                     val finalHeaders = streamItem.headers.toMutableMap().apply {
                         put("User-Agent", buildUserAgent())
                     }
@@ -95,7 +150,9 @@ class MoviesViewModel : ViewModel() {
                         isPlaying = false,
                         isFinished = thumbnailFile.exists(),
                         status = "Queued ${streamItem.size}",
-                        headers = finalHeaders
+                        headers = finalHeaders,
+                        thumbnailFile = thumbnailFile.absolutePath,
+                        thumbnailUrl = item.thumbnail
                     ))
                 }
             }
@@ -148,6 +205,7 @@ class MoviesViewModel : ViewModel() {
             val fos = FileOutputStream(file, exists)
 
 
+            var success = true
             try {
                 resumableInOneGoDownloader(
                     url = item.fileUrl,
@@ -169,7 +227,7 @@ class MoviesViewModel : ViewModel() {
                     },
 
                     onError = { error ->
-
+                        success = false
                         updateDownloadItem(item.fileUrl) {
                             it.copy(
                                 isDownloading = false,
@@ -178,6 +236,27 @@ class MoviesViewModel : ViewModel() {
                         }
                     }
                 )
+
+                if (success) {
+                    // ✅ Download thumbnail after video download finishes
+                    if (!item.thumbnailUrl.isNullOrEmpty()) {
+                        val thumbFile = File(item.thumbnailFile)
+                        if (!thumbFile.exists()) {
+                            updateDownloadItem(item.fileUrl) {
+                                it.copy(status = "Downloading thumbnail...")
+                            }
+                            downloadThumbnail(item.thumbnailUrl, thumbFile)
+                        }
+                    }
+
+                    updateDownloadItem(item.fileUrl) {
+                        it.copy(
+                            isDownloading = false,
+                            isFinished = true,
+                            status = "Finished"
+                        )
+                    }
+                }
 
             } catch (e: CancellationException) {
 
@@ -200,6 +279,8 @@ class MoviesViewModel : ViewModel() {
     fun onError(message: String){
         println(message)
     }
+
+
     private fun updateDownloadItem(
         fileUrl: String,
         transform: (DownloadItem) -> DownloadItem

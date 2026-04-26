@@ -3,16 +3,21 @@ package com.ranjan.expertclient.screens.playerscreen.controllers
 import android.content.Context
 import android.media.AudioManager
 import android.provider.Settings
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.SeekBar
+import androidx.annotation.OptIn
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
+import androidx.media3.common.util.UnstableApi
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.screens.playerscreen.PlayerScreenViewModel
 import com.ranjan.expertclient.screens.playerscreen.utils.formatTime
 
-class PlayerUIController(
+class PlayerUIController @OptIn(UnstableApi::class) constructor
+    (
     private val binding: PlayerScreenBinding,
     private val lifecycleOwner: LifecycleOwner,
     private val psv: PlayerScreenViewModel,
@@ -24,6 +29,7 @@ class PlayerUIController(
         activity.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
 
+    @OptIn(UnstableApi::class)
     fun setup() {
 
         binding.playerUI.imageView14.setOnClickListener {
@@ -34,11 +40,45 @@ class PlayerUIController(
             toggleControls()
         }
 
+        setupDoubleTapToSeek()
         setupPlaybackSeekBar()
         setupVolumeSeekBar()
         setupBrightnessSeekBar()
 
         observe()
+    }
+
+    private fun setupDoubleTapToSeek() {
+        val gestureDetector = GestureDetector(activity, object : GestureDetector.SimpleOnGestureListener() {
+            @OptIn(UnstableApi::class)
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                val viewWidth = binding.playerContainer.width
+                if (e.x < viewWidth / 2) {
+                    // Rewind 10s
+                    val newPos = (playerManager.player.currentPosition - 10000).coerceAtLeast(0)
+                    playerManager.seekTo(newPos)
+                } else {
+                    // Forward 10s
+                    val newPos = (playerManager.player.currentPosition + 10000).coerceAtMost(playerManager.player.duration)
+                    playerManager.seekTo(newPos)
+                }
+                return true
+            }
+
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                toggleControls()
+                return true
+            }
+        })
+
+        binding.playerView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP) {
+                // Potential place for performClick if needed, 
+                // but SimpleOnGestureListener handles taps.
+            }
+            true
+        }
     }
 
     private fun setupPlaybackSeekBar() {

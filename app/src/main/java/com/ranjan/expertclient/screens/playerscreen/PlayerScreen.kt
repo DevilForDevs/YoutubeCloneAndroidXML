@@ -106,7 +106,7 @@ class PlayerScreen : Fragment() {
             }else{
                 moviesViewModel.loadVideo(selectedVideo,this.requireContext(), showDialog = {
                     downloadModal.show()
-                })
+                },psv)
 
             }
 

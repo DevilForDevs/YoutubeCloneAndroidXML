@@ -24,6 +24,7 @@ class SitesScreenViewModel : ViewModel() {
 
     fun loadSites(context: Context) {
         _loading.postValue(true)
+        _sitesList.postValue(mutableListOf())
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val cacheFile = File(context.filesDir, "SupportedSites.json")
@@ -43,8 +44,6 @@ class SitesScreenViewModel : ViewModel() {
             }
         }
     }
-
-
 
     private fun fetchSitesJson(): String {
         val sitesUrl = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/SupportedSites.json"

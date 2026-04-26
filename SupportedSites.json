@@ -1,4 +1,4 @@
 [
-  { "name": "YouTube", "url": "https://www.youtube.com", "schemaUrl": "" },
-  { "name": "Mp4 Movies", "url": "https://www.mp4moviez.fyi/", "schemaUrl": "" }
+  { "name": "YouTube", "url": "https://www.youtube.com", "schemaUrl": "", "category": "Streaming" },
+  { "name": "Mp4 Movies", "url": "https://www.mp4moviez.fyi/", "schemaUrl": "", "category": "Movies" }
 ]

@@ -10,7 +10,7 @@ class SitesManager {
     fun getFeeds(siteItem: SiteItem,context: Context): PraseResult {
         if (siteItem.url.contains("mp4moviez")){
             val mp4moviez=Mp4moviez()
-            return mp4moviez.getFeeds(siteItem.url,context)
+            return mp4moviez.getFeeds(siteItem.url,context,siteItem.title)
         }
         return PraseResult(
             items = mutableListOf(),
@@ -18,10 +18,10 @@ class SitesManager {
         )
 
     }
-    fun getPage(url: String,context: Context): PraseResult {
+    fun getPage(url: String,context: Context,folder: String): PraseResult {
         if (url.contains("mp4moviez")){
             val mp4moviez=Mp4moviez()
-            return mp4moviez.getPage(url,context)
+            return mp4moviez.getPage(url,context,folder)
         }
         return PraseResult(
             items = mutableListOf(),
@@ -30,10 +30,10 @@ class SitesManager {
 
     }
 
-    fun getVideoUrls(url: String,context: Context): MutableList<StreamItem> {
+    fun getVideoUrls(url: String,context: Context,folder: String): MutableList<StreamItem> {
         if (url.contains("mp4moviez")){
             val mp4moviez=Mp4moviez()
-            return mp4moviez.getVideoUrls(url,context)
+            return mp4moviez.getVideoUrls(url,context,folder)
         }
         return mutableListOf()
     }

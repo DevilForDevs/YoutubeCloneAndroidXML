@@ -22,8 +22,6 @@ class PlayerManager(
     context: Context,
     private val psv: PlayerScreenViewModel,
 
-
-
 ) {
 
     companion object {
@@ -178,31 +176,5 @@ class PlayerManager(
         player.play()
         psv.isPaused.postValue(false)
 
-    }
-
-    @OptIn(UnstableApi::class)
-    fun changePlaySimpleUrlResolution(url: String) {
-        val resumePosition = player.currentPosition
-        val wasPlaying = player.isPlaying
-
-        psv.resetSimplePlaybackState()
-        player.stop()
-
-        val mediaItem = MediaItem.fromUri(url)
-        val source = ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(mediaItem)
-
-        player.setMediaSource(source)
-        player.prepare()
-        psv.startProgressUpdates(player)
-        player.seekTo(resumePosition)
-
-        if (wasPlaying) {
-            player.play()
-            psv.isPaused.postValue(false)
-        } else {
-            player.pause()
-            psv.isPaused.postValue(true)
-        }
     }
 }

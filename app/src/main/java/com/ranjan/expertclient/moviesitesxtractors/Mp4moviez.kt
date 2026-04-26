@@ -17,11 +17,11 @@ class Mp4moviez {
     val schemaFolder = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/schemas/mp4moviez/"
     private val client = getOkHttpClient()
 
-    fun getPage(url: String,context: Context): PraseResult{
+    fun getPage(url: String,context: Context,folder: String): PraseResult{
         val fileName="CategoryPage.json"
         val feedsSchema=schemaFolder+fileName
 
-        val cacheFile = File(context.filesDir, "mp4moviez$fileName")
+        val cacheFile = File(context.filesDir, "$folder$fileName")
         val jsonBody = if (cacheFile.exists()) {
             cacheFile.readText()
         } else {
@@ -39,11 +39,11 @@ class Mp4moviez {
     }
 
 
-    fun getFeeds(url: String,context: Context): PraseResult{
+    fun getFeeds(url: String,context: Context,folder: String): PraseResult{
         val fileName="Feeds.json"
         val feedsSchema=schemaFolder+fileName
 
-        val cacheFile = File(context.filesDir, "mp4moviez$fileName")
+        val cacheFile = File(context.filesDir, "${folder}$fileName")
         val jsonBody = if (cacheFile.exists()) {
             cacheFile.readText()
         } else {
@@ -99,12 +99,12 @@ class Mp4moviez {
             val format = movie.optString("format")
             val category = movie.optString("category")
             val poster = movie.optString("poster")
-            if (title.isNotBlank() || detailUrl.isNotBlank()) {
+            if ((title.isNotBlank() || detailUrl.isNotBlank()) && poster.isNotBlank()) {
                 items.add(
                     VideoItem(
                         videoId = detailUrl,
                         title = title.ifBlank { detailUrl },
-                        thumbnail = poster.ifBlank { null },
+                        thumbnail = poster,
                         pageUrl = detailUrl,
                         views = format.ifBlank { null },
                         publishedOn = category.ifBlank { null },
@@ -122,12 +122,12 @@ class Mp4moviez {
             val url = categoryItem.optString("url")
             val icon = categoryItem.optString("icon")
             val iconAlt = categoryItem.optString("icon_alt")
-            if (name.isNotBlank() || url.isNotBlank()) {
+            if ((name.isNotBlank() || url.isNotBlank()) && icon.isNotBlank()) {
                 items.add(
                     VideoItem(
                         videoId = url,
                         title = name.ifBlank { url },
-                        thumbnail = icon.ifBlank { null },
+                        thumbnail = icon,
                         pageUrl = url,
                         publishedOn = iconAlt.ifBlank { null },
                         yt = false,
@@ -191,14 +191,14 @@ class Mp4moviez {
         return "${uri.scheme}://${uri.host}"
     }
 
-    fun getVideoUrls(url: String, context: Context): MutableList<StreamItem> {
+    fun getVideoUrls(url: String, context: Context,folder: String): MutableList<StreamItem> {
         val murl = buildHdMovieUrl(url)
         if (murl.isNullOrEmpty()) return mutableListOf()
 
         val fileName = "Details.json"
         val feedsSchema = schemaFolder + fileName
 
-        val cacheFile = File(context.filesDir, "mp4moviez$fileName")
+        val cacheFile = File(context.filesDir, "${folder}$fileName")
         val jsonBody = if (cacheFile.exists()) {
             cacheFile.readText()
         } else {

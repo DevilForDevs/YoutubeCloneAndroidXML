@@ -7,7 +7,9 @@ import com.ranjan.expertclient.screens.sitesscreen.SiteItem
 
 class ItemsAdapter(
     private val items: List<SiteItem>,
-    private val onItemClick: (item: SiteItem) -> Unit
+    private val onItemClick: (item: SiteItem) -> Unit,
+    private val onDomainClick:(item: SiteItem)-> Unit,
+    private val onSchemaClick:(item: SiteItem)-> Unit,
 ) : RecyclerView.Adapter<ItemsHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemsHolder {
@@ -20,7 +22,7 @@ class ItemsAdapter(
     }
 
     override fun onBindViewHolder(holder: ItemsHolder, position: Int) {
-        holder.bind(items[position],onItemClick)
+        holder.bind(items[position],onItemClick,onDomainClick,onSchemaClick)
     }
 
     override fun getItemCount() = items.size
