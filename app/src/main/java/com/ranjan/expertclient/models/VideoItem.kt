@@ -1,5 +1,8 @@
 package com.ranjan.expertclient.models
 
+import com.ranjan.expertclient.moviesitesxtractors.SitesManager
+
+
 data class VideoItem(
     val videoId: String,
     val title: String,
@@ -15,6 +18,6 @@ data class VideoItem(
     val yt: Boolean=true,
     val pageUrl: String?=null,
     val category: Boolean=true,
-    val siteName: String?=null,
+    val siteManager: SitesManager?=null,
 
 )

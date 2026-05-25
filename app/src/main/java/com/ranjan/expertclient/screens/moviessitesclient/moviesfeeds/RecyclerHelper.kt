@@ -47,7 +47,7 @@ class RecyclerHelper(
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
                 val lm = rv.layoutManager as LinearLayoutManager
                 if (lm.findLastVisibleItemPosition() >= lm.itemCount - 2) {
-                    viewModel.loadMore(fragment.requireContext())
+                    /*viewModel.loadMore(fragment.requireContext())*/
                 }
             }
         })

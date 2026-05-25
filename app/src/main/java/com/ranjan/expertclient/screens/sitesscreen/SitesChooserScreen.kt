@@ -58,7 +58,6 @@ class SitesChooserScreen : Fragment() {
 
     fun onItemClick(item: SiteItem) {
         sharedViewModel.selectedSite.postValue(item)
-        println(item)
         if (item.url.contains("youtube")) {
             browserStore.chooseDomain.value = null
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -66,7 +65,8 @@ class SitesChooserScreen : Fragment() {
             } else {
                 findNavController().navigate(R.id.action_sitesChooserScreen_to_bottomNavScreen)
             }
-        }else{
+        }
+        if (item.category == "Movies") {
             findNavController().navigate(R.id.action_sitesChooserScreen_to_moviesFeedsScreen)
         }
     }
@@ -78,6 +78,7 @@ class SitesChooserScreen : Fragment() {
     }
 
     fun onSchemaClick(item: SiteItem) {
+        
     }
 
 }

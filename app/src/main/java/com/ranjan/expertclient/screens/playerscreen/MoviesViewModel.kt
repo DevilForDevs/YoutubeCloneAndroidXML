@@ -1,49 +1,37 @@
 package com.ranjan.expertclient.screens.playerscreen
 
-import android.content.Context
 import android.os.Build
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ranjan.expertclient.models.VideoItem
-import com.ranjan.expertclient.moviesitesxtractors.SitesManager
 import com.ranjan.expertclient.screens.playerscreen.models.DownloadItem
 import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 import com.ranjan.expertclient.utils.convertBytes
 import com.ranjan.expertclient.utils.downloadThumbnail
 import com.ranjan.expertclient.utils.fetchUrlInfo
-import com.ranjan.expertclient.utils.getOkHttpClient
 import com.ranjan.expertclient.utils.resumableInOneGoDownloader
 import com.ranjan.expertclient.utils.txt2filename
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.cancellation.CancellationException
 
 class MoviesViewModel : ViewModel() {
 
-    private val siteManager = SitesManager()
     private val _downloads = MutableLiveData<List<DownloadItem>>()
     val downloads: LiveData<List<DownloadItem>> = _downloads
 
-    private var loadJob: Job? = null
-    private val latestRequestId = AtomicLong(0L)
-
     // Track active jobs by URL
     private val activeJobs = mutableMapOf<String, Job>()
-    
-    private var currentVideoUrls = listOf<String>()
 
     fun buildUserAgent(): String {
         val androidVersion = Build.VERSION.RELEASE
         val device = Build.MODEL
-        val brand = Build.BRAND
         val buildId = Build.ID
 
         return "Mozilla/5.0 (Linux; Android $androidVersion; $device Build/$buildId; wv) " +
@@ -62,7 +50,7 @@ class MoviesViewModel : ViewModel() {
            subscriberCount = "",
            firstHasTag ="",
            hashTags = "Playing Offline",
-           channelName =item.siteName,
+           channelName = item.siteManager?.currentSite?.title,
            channelUrl = ""
        ))
 
@@ -70,69 +58,57 @@ class MoviesViewModel : ViewModel() {
 
     }
 
-    fun loadVideo(item: VideoItem, context: Context, showDialog: () -> Unit,psv: PlayerScreenViewModel) {
+    fun loadVideo(item: VideoItem,showDialog: () -> Unit,psv: PlayerScreenViewModel) {
         val pageUrl = item.pageUrl ?: return
         setupVideoInfo(psv, item)
+        if (item.siteManager==null) return
 
-        // ✅ Check if it's a local file (Offline mode)
-        val isLocalFile = File(pageUrl).exists() && (pageUrl.endsWith(".mp4") || pageUrl.endsWith(".mkv"))
-        if (isLocalFile) {
-            val file = File(pageUrl)
-            
-            // Access last 10 characters for resolution as requested
-            val fileName = file.nameWithoutExtension
-            val extractedResolution = if (fileName.length >= 10) fileName.takeLast(10) else fileName
+        val di=mutableListOf<DownloadItem>()
+        val sitesFolder=item.siteManager.siteFolder
 
-            val di = listOf(
-                DownloadItem(
-                    resolution = extractedResolution,
-                    dbyBydt = convertBytes(file.length()),
-                    speed = "0 KB/s",
-                    isDownloading = false,
-                    fileName = pageUrl,
-                    fileUrl = pageUrl,
-                    isPlaying = false,
-                    isFinished = true,
-                    status = "Finished",
-                    headers = emptyMap(),
-                    thumbnailFile = item.thumbnail ?: "",
-                    thumbnailUrl = null
+        val thumbnailsFolder=File(sitesFolder,"thumbnails")
+        val videosFolder=File(sitesFolder,"videos")
+        if (!thumbnailsFolder.exists()){
+            thumbnailsFolder.mkdir()
+        }
+        if (!videosFolder.exists()){
+            videosFolder.mkdir()
+        }
+        val sanitizedTitle = txt2filename(item.title)
+        val thumbnailFile = File(thumbnailsFolder, "${sanitizedTitle}.jpg")
+        if (thumbnailFile.exists()){
+            val existingVideos = videosFolder.listFiles { file ->
+                file.isFile && file.name.startsWith("${sanitizedTitle}(") && file.extension.equals("mp4", ignoreCase = true)
+            }.orEmpty()
+
+            existingVideos.forEach { videoFile ->
+                val fileName = videoFile.nameWithoutExtension
+                val extractedResolution = if (fileName.length >= 10) fileName.takeLast(10) else fileName
+
+                di.add(
+                    DownloadItem(
+                        resolution = extractedResolution,
+                        dbyBydt = convertBytes(videoFile.length()),
+                        speed = "0 KB/s",
+                        isDownloading = false,
+                        fileName = videoFile.absolutePath,
+                        fileUrl = pageUrl,
+                        isPlaying = false,
+                        isFinished = true,
+                        status = "Offline Available",
+                        headers = emptyMap(),
+                        thumbnailFile = thumbnailFile.absolutePath,
+                        thumbnailUrl = item.thumbnail
+                    )
                 )
-            )
-            _downloads.postValue(di)
-            viewModelScope.launch(Dispatchers.Main) {
-                showDialog()
             }
-            return
         }
 
-        loadJob?.cancel()
-        
-        currentVideoUrls = emptyList()
-        val requestId = latestRequestId.incrementAndGet()
-        loadJob = viewModelScope.launch(Dispatchers.IO) {
-            val urls = siteManager.getVideoUrls(pageUrl, context,item.siteName?:"")
-            if (requestId != latestRequestId.get()) return@launch
-            
-            val di=mutableListOf<DownloadItem>()
-            val sitesFolder=File(context.filesDir,item.siteName?:"default")
-            if (!sitesFolder.exists()){
-                sitesFolder.mkdir()
-            }
-            val thumbnailsFolder=File(sitesFolder,"thumbnails")
-            val videosFolder=File(sitesFolder,"videos")
-            if (!thumbnailsFolder.exists()){
-                thumbnailsFolder.mkdir()
-            }
-            if (!videosFolder.exists()){
-                videosFolder.mkdir()
-            }
-            val sanitizedTitle = txt2filename(item.title)
-            val thumbnailFile = File(thumbnailsFolder, "${sanitizedTitle}.jpg")
 
+        viewModelScope.launch(Dispatchers.IO) {
+            val urls = item.siteManager.getVideoUrls(pageUrl)
 
             urls.forEach { streamItem ->
-                if (requestId != latestRequestId.get()) return@launch
                 val isValid = streamItem.url.contains("jio=", ignoreCase = true)
                 if (isValid) {
                     val videoFile = File(videosFolder, "${sanitizedTitle}(${streamItem.resolutionString}).mp4")
@@ -156,18 +132,16 @@ class MoviesViewModel : ViewModel() {
                     ))
                 }
             }
-            
-            if (requestId == latestRequestId.get()) {
-                _downloads.postValue(di)
-                withContext(Dispatchers.Main) {
-                    showDialog()
-                }
+            _downloads.postValue(di)
+            withContext(Dispatchers.Main) {
+                showDialog()
             }
+
         }
+
+
     }
     fun action(item: DownloadItem) {
-
-        // 🔁 Toggle cancel
         if (activeJobs.containsKey(item.fileUrl)) {
             activeJobs[item.fileUrl]?.cancel()
             activeJobs.remove(item.fileUrl)
@@ -180,9 +154,11 @@ class MoviesViewModel : ViewModel() {
             }
             return
         }
+        if (item.status=="Offline Available"){
+            return
+        }
 
         val job = viewModelScope.launch(Dispatchers.IO) {
-            println("starting")
 
             updateDownloadItem(item.fileUrl) {
                 it.copy(
@@ -258,7 +234,7 @@ class MoviesViewModel : ViewModel() {
                     }
                 }
 
-            } catch (e: CancellationException) {
+            } catch (_: CancellationException) {
 
                 updateDownloadItem(item.fileUrl) {
                     it.copy(
@@ -274,6 +250,9 @@ class MoviesViewModel : ViewModel() {
 
         // ✅ IMPORTANT: store job
         activeJobs[item.fileUrl] = job
+
+
+
     }
 
     fun onError(message: String){

@@ -1,8 +1,9 @@
-package com.ranjan.expertclient.moviesitesxtractors
-import android.content.Context
+package com.ranjan.expertclient.moviesitesxtractors.sitehandlers
+
 import com.ranjan.expertclient.apiendpoints.HtmlExtractor
 import com.ranjan.expertclient.models.PraseResult
 import com.ranjan.expertclient.models.VideoItem
+import com.ranjan.expertclient.moviesitesxtractors.SiteParser
 import com.ranjan.expertclient.screens.browserscreen.safeGet
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
 import com.ranjan.expertclient.utils.getOkHttpClient
@@ -10,40 +11,43 @@ import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.io.IOException
 import java.net.URI
 
-class Mp4moviez {
-    val schemaFolder = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/schemas/mp4moviez/"
+class Mp4moviez : SiteParser {
+    val githubSchemasFolder = "https://raw.githubusercontent.com/DevilForDevs/YoutubeCloneAndroidXML/master/schemas/mp4moviez/"
     private val client = getOkHttpClient()
 
-    fun getPage(url: String,context: Context,folder: String): PraseResult{
-        val fileName="CategoryPage.json"
-        val feedsSchema=schemaFolder+fileName
-
-        val cacheFile = File(context.filesDir, "$folder$fileName")
-        val jsonBody = if (cacheFile.exists()) {
-            cacheFile.readText()
-        } else {
-            val fetchedJson = fetchSitesJson(feedsSchema)
-            cacheFile.writeText(fetchedJson)
-            fetchedJson
-        }
-
-        val input = JSONObject().apply {
-            put("url", url)
-            put("schema", JSONObject(jsonBody))
-        }
-        val jsonResult = HtmlExtractor.fetch(input)
-        return parseResult(jsonResult)
-    }
+    override val siteTitle   = "Mp4 Movies"
+    override var localSchemaFolder: String?=null
 
 
-    fun getFeeds(url: String,context: Context,folder: String): PraseResult{
+
+    override fun getFeeds(url: String, schemasFolder: String): PraseResult {
+        localSchemaFolder=schemasFolder
         val fileName="Feeds.json"
-        val feedsSchema=schemaFolder+fileName
+        val feedsSchemaUrl=githubSchemasFolder+fileName
+        val cacheFile = File(schemasFolder, fileName)
+        val jsonBody = if (cacheFile.exists()) {
+            cacheFile.readText()
+        } else {
+            val fetchedJson = fetchSitesJson(feedsSchemaUrl)
+            cacheFile.writeText(fetchedJson)
+            fetchedJson
+        }
 
-        val cacheFile = File(context.filesDir, "${folder}$fileName")
+        val input = JSONObject().apply {
+            put("url", url)
+            put("schema", JSONObject(jsonBody))
+        }
+        val jsonResult = HtmlExtractor.fetch(input)
+        return parseResult(jsonResult)
+
+    }
+    override fun getPage(url: String): PraseResult {
+        val fileName="CategoryPage.json"
+        val feedsSchema=githubSchemasFolder+fileName
+
+        val cacheFile = File(localSchemaFolder, fileName)
         val jsonBody = if (cacheFile.exists()) {
             cacheFile.readText()
         } else {
@@ -58,19 +62,9 @@ class Mp4moviez {
         }
         val jsonResult = HtmlExtractor.fetch(input)
         return parseResult(jsonResult)
-
     }
 
-    private fun fetchSitesJson(url: String): String {
-        val request = Request.Builder()
-            .url(url)
-            .build()
 
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Network error")
-            return response.body?.string() ?: "{}"
-        }
-    }
     fun parseResult(jsonObject: JSONObject): PraseResult {
         val items = mutableListOf<VideoItem>()
         val movies = safeGet(
@@ -109,8 +103,7 @@ class Mp4moviez {
                         views = format.ifBlank { null },
                         publishedOn = category.ifBlank { null },
                         yt = false,
-                        category = false,
-                        siteName = "Mp4moviez"
+                        category = false
                     )
                 )
             }
@@ -132,7 +125,6 @@ class Mp4moviez {
                         publishedOn = iconAlt.ifBlank { null },
                         yt = false,
                         category = true,
-                        siteName = "Mp4moviez"
 
                     )
                 )
@@ -150,14 +142,20 @@ class Mp4moviez {
                 break
             }
         }
-       return PraseResult(
+        return PraseResult(
             items = items,
             nextPageUrl = nextPageUrl
-       )
+        )
+    }
+    private fun fetchSitesJson(url: String): String {
+        val request = Request.Builder()
+            .url(url)
+            .build()
 
-
-
-
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw okio.IOException("Network error") as Throwable
+            return response.body?.string() ?: "{}"
+        }
     }
 
     fun buildHdMovieUrl(inputUrl: String): String? {
@@ -187,22 +185,22 @@ class Mp4moviez {
     }
 
     fun getBaseOrigin(url: String): String {
-        val uri = java.net.URI(url)
+        val uri = URI(url)
         return "${uri.scheme}://${uri.host}"
     }
 
-    fun getVideoUrls(url: String, context: Context,folder: String): MutableList<StreamItem> {
+    override fun getVideoUrls(url: String): MutableList<StreamItem> {
         val murl = buildHdMovieUrl(url)
         if (murl.isNullOrEmpty()) return mutableListOf()
 
         val fileName = "Details.json"
-        val feedsSchema = schemaFolder + fileName
+        val feedsSchemaUrl = githubSchemasFolder + fileName
 
-        val cacheFile = File(context.filesDir, "${folder}$fileName")
+        val cacheFile = File(localSchemaFolder ,fileName)
         val jsonBody = if (cacheFile.exists()) {
             cacheFile.readText()
         } else {
-            val fetchedJson = fetchSitesJson(feedsSchema)
+            val fetchedJson = fetchSitesJson(feedsSchemaUrl)
             cacheFile.writeText(fetchedJson)
             fetchedJson
         }
@@ -252,7 +250,6 @@ class Mp4moviez {
 
         return variants
     }
-
     fun extractResolution(url: String): String? {
         val match = Regex("[?&]q=(\\d+)").find(url)
         return match?.groupValues?.get(1)
@@ -263,6 +260,8 @@ class Mp4moviez {
         val match = regex.find(str)
         return match?.groupValues?.get(1)?.trim()
     }
+
+
 
 
 }

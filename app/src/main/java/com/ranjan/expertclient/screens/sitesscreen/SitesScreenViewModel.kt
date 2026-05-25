@@ -65,7 +65,8 @@ class SitesScreenViewModel : ViewModel() {
             items.add(
                 SiteItem(
                     title = obj.getString("name"),
-                    url = obj.getString("url")
+                    url = obj.getString("url"),
+                    category = obj.getString("category")
                 )
             )
         }
