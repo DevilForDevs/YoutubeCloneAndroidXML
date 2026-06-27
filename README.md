@@ -5,8 +5,21 @@
 [![Figma](https://img.shields.io/badge/Figma-UI%20Kit-F24E1E?logo=figma&logoColor=white)](https://www.figma.com/design/Y4IBRB33ogPXuVO0xY4KtF/Youtube-Clone--Community-?m=auto&t=A9ELVzOoKtuBWSsl-6)
 
 This project is a **YouTube clone built for Android using XML layouts**. The goal is to create a visually appealing and functional application that mimics the YouTube interface.
-
 ---
+## Download
+<p align="center">
+  <a href="https://github.com/DevilForDevs/YoutubeCloneAndroidXML/releases">
+    <img src="https://img.shields.io/badge/Download-Android_APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" />
+  </a>
+</p>
+
+## Related Project
+
+<p align="center">
+  <a href="https://github.com/DevilForDevs/TkinterDownloader">
+    <img src="https://img.shields.io/badge/YtDesktopPlayer-FF0000?style=for-the-badge&logo=youtube&logoColor=white" />
+  </a>
+</p>
 
 ## 📌 Repository Description
 An Android XML learning project that recreates core YouTube screens (feed, player, search, and channel tabs) using modular structure and ViewModel-based UI state management.
@@ -31,7 +44,7 @@ We utilize **ViewModel architecture** from Android's architecture components. Th
 ## 📸 Screenshots
 
 ### 🏠 Feed Screen
-![Feed Screen](screenshots/feedsscreen.jpg)
+![Feed Screen](screenshots/feedscreen.jpeg)
 
 ---
 
