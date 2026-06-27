@@ -79,6 +79,7 @@ class MoviesScreenViewModel : ViewModel() {
 
     }
     fun loadOfflineItems(siteFolder: String):List<VideoItem>{
+        return emptyList()
 
     }
 

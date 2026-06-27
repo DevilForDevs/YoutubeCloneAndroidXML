@@ -65,10 +65,17 @@ class SitesChooserScreen : Fragment() {
             } else {
                 findNavController().navigate(R.id.action_sitesChooserScreen_to_bottomNavScreen)
             }
+            return
         }
         if (item.category == "Movies") {
             findNavController().navigate(R.id.action_sitesChooserScreen_to_moviesFeedsScreen)
+            return
         }
+        if (item.category=="Streaming"){
+            findNavController().navigate(R.id.action_sitesChooserScreen_to_feedsScreen)
+            return
+        }
+
     }
 
     fun onDomainClick(item: SiteItem) {

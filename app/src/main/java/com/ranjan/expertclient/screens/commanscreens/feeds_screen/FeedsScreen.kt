@@ -46,7 +46,7 @@ class FeedsScreen : Fragment() {
             fragment = this
         )
         helper.setup()
-        viewModel.loadingFeeds(sharedViewModel.selectedSite.value!!)
+        viewModel.loadingFeeds(sharedViewModel.selectedSite.value!!,requireContext())
 
     }
     fun onItemClick(item: VideoItem){

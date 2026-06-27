@@ -36,6 +36,8 @@ class SitesScreenViewModel : ViewModel() {
                     fetchedJson
                 }
 
+                println(jsonBody)
+
                 _sitesList.postValue(parseSites(jsonBody))
             } catch (e: Exception) {
                 e.printStackTrace()

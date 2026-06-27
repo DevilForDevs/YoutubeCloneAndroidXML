@@ -1,4 +1,5 @@
 [
   { "name": "YouTube", "url": "https://www.youtube.com", "schemaUrl": "", "category": "Streaming" },
-  { "name": "Mp4 Movies", "url": "https://www.mp4moviez.fyi/", "schemaUrl": "", "category": "Movies" }
+  { "name": "Mp4 Movies", "url": "https://www.mp4moviez.fast/", "schemaUrl": "", "category": "Movies" },
+  { "name": "XmazaTv", "url": "https://xmaza.tv/", "schemaUrl": "", "category": "Streaming" }
 ]

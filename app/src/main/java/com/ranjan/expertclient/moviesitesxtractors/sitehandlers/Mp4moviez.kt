@@ -65,7 +65,7 @@ class Mp4moviez : SiteParser {
     }
 
 
-    fun parseResult(jsonObject: JSONObject): PraseResult {
+    private fun parseResult(jsonObject: JSONObject): PraseResult {
         val items = mutableListOf<VideoItem>()
         val movies = safeGet(
             jsonObject,
