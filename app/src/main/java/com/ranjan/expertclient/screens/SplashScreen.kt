@@ -7,18 +7,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.ranjan.expertclient.databinding.SplashScreenBinding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.ranjan.expertclient.R
+import com.ranjan.expertclient.screens.playerscreen.SharedVideoViewModel
+import kotlin.getValue
 
 @SuppressLint("CustomSplashScreen")
 class SplashScreen : Fragment() {
     private lateinit var binding: SplashScreenBinding
 //    private val backThread = CoroutineScope(Dispatchers.IO)
-
+    private val sharedViewModel by activityViewModels<SharedVideoViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,7 +37,16 @@ class SplashScreen : Fragment() {
 
         lifecycleScope.launch {
             delay(3000)
-            findNavController().navigate(R.id.action_splashScreen_to_sitesChooserScreen)
+            if (sharedViewModel.selectedVideo.value!=null){
+                if (sharedViewModel.selectedVideo.value!!.title=="From Intent"){
+                    findNavController().navigate(R.id.action_splashScreen_to_playerScreen)
+                }else{
+                    findNavController().navigate(R.id.action_splashScreen_to_sitesChooserScreen)
+                }
+            }else{
+                findNavController().navigate(R.id.action_splashScreen_to_sitesChooserScreen)
+            }
+
         }
     }
 

@@ -285,6 +285,147 @@ fun getShortsList(shortsArray: JSONArray): MutableList<VideoItem> {
     return shortsList
 }
 
+fun parseVideoItemMwebFeedsLokup(item: JSONObject): VideoItem {
+    return VideoItem(
+        videoId = safeGet(item, listOf("contentId"), "") as String,
+
+        title = safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "title",
+                "content"
+            ),
+            ""
+        ) as String,
+
+        thumbnail = safeGet(
+            item,
+            listOf(
+                "contentImage",
+                "thumbnailViewModel",
+                "image",
+                "sources",
+                0,
+                "url"
+            )
+        ) as? String,
+
+        channelName = safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "metadata",
+                "contentMetadataViewModel",
+                "metadataRows",
+                0,
+                "metadataParts",
+                0,
+                "text",
+                "content"
+            )
+        ) as? String,
+
+        channelAvtar = safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "image",
+                "decoratedAvatarViewModel",
+                "avatar",
+                "avatarViewModel",
+                "image",
+                "sources",
+                0,
+                "url"
+            )
+        ) as? String,
+
+        channelUrl = (safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "image",
+                "decoratedAvatarViewModel",
+                "rendererContext",
+                "commandContext",
+                "onTap",
+                "innertubeCommand",
+                "browseEndpoint",
+                "canonicalBaseUrl"
+            )
+        ) as? String)?.let {
+            if (it.startsWith("http")) it else "https://www.youtube.com$it"
+        },
+
+        views = safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "metadata",
+                "contentMetadataViewModel",
+                "metadataRows",
+                0,
+                "metadataParts",
+                1,
+                "text",
+                "content"
+            )
+        ) as? String,
+
+        duration = safeGet(
+            item,
+            listOf(
+                "contentImage",
+                "thumbnailViewModel",
+                "overlays",
+                0,
+                "thumbnailOverlayBadgeViewModel",
+                "thumbnailBadges",
+                0,
+                "thumbnailBadgeViewModel",
+                "text"
+            )
+        ) as? String,
+
+        publishedOn = safeGet(
+            item,
+            listOf(
+                "metadata",
+                "lockupMetadataViewModel",
+                "metadata",
+                "contentMetadataViewModel",
+                "metadataRows",
+                0,
+                "metadataParts",
+                2,
+                "text",
+                "content"
+            )
+        ) as? String,
+
+        pageUrl = (safeGet(
+            item,
+            listOf(
+                "itemPlayback",
+                "inlinePlayerData",
+                "onSelect",
+                "innertubeCommand",
+                "commandMetadata",
+                "webCommandMetadata",
+                "url"
+            )
+        ) as? String)?.let {
+            if (it.startsWith("http")) it else "https://www.youtube.com$it"
+        }
+    )
+}
+
 fun parseInitialData(responseContext: JSONObject, flags: String): Pair<MutableList<VideoItem>, String?> {
 
     val contents = getContentArray(responseContext, flags)
@@ -297,6 +438,7 @@ fun parseInitialData(responseContext: JSONObject, flags: String): Pair<MutableLi
 
 
         val item = contents.optJSONObject(i) ?: continue
+        println(item)
 
 
         // ✅ 1. Direct video
@@ -307,10 +449,10 @@ fun parseInitialData(responseContext: JSONObject, flags: String): Pair<MutableLi
         // ✅ 2. Rich item video
         (safeGet(
             item,
-            listOf("richItemRenderer", "content", "videoWithContextRenderer"),
+            listOf("richItemRenderer", "content", "lockupViewModel"),
             null
         ) as? JSONObject)?.let {
-            videosList.add(getVideoFromContextRender(it))
+            videosList.add(parseVideoItemMwebFeedsLokup(it))
         }
 
         // ✅ 3. Shorts (UNIFIED)

@@ -2,6 +2,7 @@ package com.ranjan.expertclient.apiendpoints
 
 import com.ranjan.expertclient.apiendpoints.RandomStringGenerator.generateContentPlaybackNonce
 import com.ranjan.expertclient.apiendpoints.RandomStringGenerator.generateTParameter
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -141,6 +142,108 @@ fun getVisitorId(): String {
     return json
         .getJSONObject("responseContext")
         .getString("visitorData")
+}
+
+
+fun getWebVisitorId(): String {
+    val client = OkHttpClient()
+
+    val request = Request.Builder()
+        .url("https://www.youtube.com")
+        .header(
+            "User-Agent",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                    "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                    "Chrome/137.0.0.0 Safari/537.36"
+        )
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+            throw RuntimeException("HTTP ${response.code}")
+        }
+
+        val body = response.body?.string()
+            ?: throw RuntimeException("Empty response")
+
+        val regex = """"VISITOR_DATA":"([^"]+)"""".toRegex()
+        val match = regex.find(body)
+            ?: throw RuntimeException("VISITOR_DATA not found")
+
+        return match.groupValues[1]
+    }
+}
+
+fun vrPlayerResponse(videoId: String): JSONObject {
+    val visitorData = getWebVisitorId()
+
+    val client = OkHttpClient()
+
+    val body = JSONObject().apply {
+        put("context", JSONObject().apply {
+            put("client", JSONObject().apply {
+                put("clientName", "ANDROID_VR")
+                put("clientVersion", "1.65.10")
+                put("deviceMake", "Oculus")
+                put("deviceModel", "Quest 3")
+                put("androidSdkVersion", 32)
+                put(
+                    "userAgent",
+                    "com.google.android.apps.youtube.vr.oculus/1.65.10 " +
+                            "(Linux; U; Android 12L; " +
+                            "eureka-user Build/SQ3A.220605.009.A1) gzip"
+                )
+                put("osName", "Android")
+                put("osVersion", "12L")
+                put("hl", "en")
+                put("timeZone", "UTC")
+                put("utcOffsetMinutes", 0)
+                put("visitorData", visitorData)
+            })
+        })
+
+        put("videoId", videoId)
+
+        put("playbackContext", JSONObject().apply {
+            put("contentPlaybackContext", JSONObject().apply {
+                put("html5Preference", "HTML5_PREF_WANTS")
+                put("signatureTimestamp", 20594) // update if needed
+            })
+        })
+
+        put("contentCheckOk", true)
+        put("racyCheckOk", true)
+    }
+
+    val request = Request.Builder()
+        .url("https://www.youtube.com/youtubei/v1/player?prettyPrint=false")
+        .header("Content-Type", "application/json")
+        .header("X-YouTube-Client-Name", "28")
+        .header("X-YouTube-Client-Version", "1.65.10")
+        .header("Origin", "https://www.youtube.com")
+        .header(
+            "User-Agent",
+            "com.google.android.apps.youtube.vr.oculus/1.65.10 " +
+                    "(Linux; U; Android 12L; " +
+                    "eureka-user Build/SQ3A.220605.009.A1) gzip"
+        )
+        .header("X-Goog-Visitor-Id", visitorData)
+        .post(
+            body.toString()
+                .toRequestBody("application/json".toMediaType())
+        )
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+            throw RuntimeException("HTTP ${response.code}")
+        }
+
+        val responseBody = response.body?.string()
+            ?: throw RuntimeException("Empty response")
+
+        return JSONObject(responseBody)
+    }
 }
 
 fun getStreamingData(videoId: String,visitorData: String): JSONObject {

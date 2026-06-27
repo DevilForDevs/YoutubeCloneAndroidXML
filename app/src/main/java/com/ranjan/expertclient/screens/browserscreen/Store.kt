@@ -118,11 +118,14 @@ class Store : ViewModel() {
         _navigateBack.value = false
     }
 
-    fun handleWebFeed(jsonString: String, taskCompleted: () -> Unit) {
+    fun handleWebFeed(jsonString: String, taskCompleted: () -> Unit,context: Context) {
         if (webFeeds.value?.isEmpty() ?: true) {
             val finalJson = JSONObject(jsonString)
+
             if (finalJson.has("data")) {
                 val responseContext = finalJson.getJSONObject("data")
+//                val cacheFile = File(context.filesDir, "mwebfeeds.json")
+//                cacheFile.writeText(finalJson.toString(2))
                 visitorId = safeGet(
                     responseContext,
                     listOf(

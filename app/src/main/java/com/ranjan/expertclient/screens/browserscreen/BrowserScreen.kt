@@ -104,6 +104,6 @@ class BrowserScreen : Fragment() {
 
     fun onWebviewMessage(message: String) {
         if (viewModel.chooseDomain.value != null) return
-        viewModel.handleWebFeed(message, ::goToBottomScreen)
+        viewModel.handleWebFeed(message, ::goToBottomScreen,requireContext())
     }
 }

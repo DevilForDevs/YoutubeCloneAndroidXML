@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_splashScreen_to_sitesChooserScreen"
             app:destination="@id/sitesChooserScreen" />
+        <action
+            android:id="@+id/action_splashScreen_to_playerScreen"
+            app:destination="@id/playerScreen" />
     </fragment>
 
     <fragment

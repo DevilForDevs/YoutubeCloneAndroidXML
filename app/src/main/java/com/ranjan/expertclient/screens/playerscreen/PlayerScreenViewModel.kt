@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.ranjan.expertclient.apiendpoints.getStreamingData
+import com.ranjan.expertclient.apiendpoints.vrPlayerResponse
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.playerscreen.controllers.PlayerManager
 import com.ranjan.expertclient.screens.playerscreen.models.StreamItem
@@ -125,9 +126,8 @@ class PlayerScreenViewModel : ViewModel() {
 
         currentVideoId = videoItem.videoId
 
-        val streamingData = getStreamingData(
+        val streamingData = vrPlayerResponse(
             videoItem.playlistId?:videoItem.videoId,
-            visitorData = visitorId
         )
 
         return streamingData
@@ -158,7 +158,7 @@ class PlayerScreenViewModel : ViewModel() {
                 withContext(Dispatchers.IO){
                     loadSuggestions(
                          visitorId, videoItem,
-                        video_details =playerResponse.getJSONObject("playerResponse").getJSONObject("videoDetails"),
+                        video_details =playerResponse.getJSONObject("videoDetails"),
                     )
                 }
             }catch (e: Exception){

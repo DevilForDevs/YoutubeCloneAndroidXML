@@ -21,6 +21,8 @@ class SearchScreenViewModel: ViewModel() {
     var _query=""
     var inflight=false
 
+
+
     fun getInitialResult(query: String){
         _isLoading.value=true
         _query=query
