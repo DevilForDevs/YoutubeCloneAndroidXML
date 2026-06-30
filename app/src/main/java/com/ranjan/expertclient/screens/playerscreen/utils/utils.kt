@@ -1,5 +1,6 @@
 package com.ranjan.expertclient.screens.playerscreen.utils
 
+import android.media.MediaCodecList
 import com.ranjan.expertclient.models.VideoItem
 import com.ranjan.expertclient.screens.browserscreen.parsers.getContentArray
 import com.ranjan.expertclient.screens.browserscreen.safeGet
@@ -9,8 +10,23 @@ import com.ranjan.expertclient.screens.playerscreen.models.VideoDetails
 import org.json.JSONArray
 import org.json.JSONObject
 
+
+fun supportsAv1(): Boolean {
+    val codecList = MediaCodecList(MediaCodecList.ALL_CODECS)
+
+    return codecList.codecInfos
+        .filter { !it.isEncoder }
+        .any { codec ->
+            codec.supportedTypes.any {
+                it.equals("video/av01", ignoreCase = true)
+            }
+        }
+}
+
 fun parseAdaptiveFormats(array: JSONArray): List<StreamItem> {
     val list = mutableListOf<StreamItem>()
+
+    val av1Supported = supportsAv1()
 
     for (i in 0 until array.length()) {
         val obj = array.getJSONObject(i)
@@ -21,12 +37,21 @@ fun parseAdaptiveFormats(array: JSONArray): List<StreamItem> {
         val height = if (obj.has("height")) obj.optInt("height") else null
         val bitrate = obj.optInt("bitrate")
 
-        if (url.isNullOrEmpty()) continue
+        if (url.isEmpty()) continue
 
-        val isVideoAvc = mimeType.contains("video") && mimeType.contains("avc1")
         val isAudio = mimeType.contains("audio")
 
-        if (!(isVideoAvc || isAudio)) continue
+        val isVideo = mimeType.contains("video")
+        val isAvc = mimeType.contains("avc1")
+        val isAv1 = mimeType.contains("av01")
+
+        val acceptVideo = when {
+            isAv1 && av1Supported -> true
+            isAvc -> true
+            else -> false
+        }
+
+        if (!(isAudio || acceptVideo)) continue
 
         list.add(
             StreamItem(

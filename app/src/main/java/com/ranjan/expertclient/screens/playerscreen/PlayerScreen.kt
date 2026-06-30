@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.annotation.OptIn
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -68,7 +70,7 @@ class PlayerScreen : Fragment() {
             activity = requireActivity()
         )
         val fullscreenManager = FullscreenManager(
-            activity = requireActivity(),
+            activity = requireActivity() as AppCompatActivity,
             binding = binding,
             psv = psv,
             lifecycleOwner = viewLifecycleOwner

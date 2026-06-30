@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo
 import android.content.res.Resources
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -12,9 +13,11 @@ import androidx.lifecycle.LifecycleOwner
 import com.ranjan.expertclient.R
 import com.ranjan.expertclient.databinding.PlayerScreenBinding
 import com.ranjan.expertclient.screens.playerscreen.PlayerScreenViewModel
+import androidx.activity.addCallback
+import androidx.appcompat.app.AppCompatActivity
 
 class FullscreenManager(
-    private val activity: Activity,
+    private val activity: AppCompatActivity,
     private val binding: PlayerScreenBinding,
     private val psv: PlayerScreenViewModel,
     private val lifecycleOwner: LifecycleOwner
@@ -30,9 +33,20 @@ class FullscreenManager(
             toggleFullScreen()
         }
 
+        activity.onBackPressedDispatcher.addCallback(lifecycleOwner) {
+            if (psv.isFullScreen.value == true) {
+                psv.isFullScreen.value = false
+            } else {
+                isEnabled = false
+                activity.onBackPressedDispatcher.onBackPressed()
+            }
+        }
+
+
+
     }
 
-    private fun applyOrientation(isFull: Boolean) {
+    fun applyOrientation(isFull: Boolean) {
         val window = activity.window
         val controller = WindowCompat.getInsetsController(window, window.decorView)
 
